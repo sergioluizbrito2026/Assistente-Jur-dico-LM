@@ -10,3 +10,6 @@ docx2txt
 openpyxl
 sentence-transformers
 beautifulsoup4
+unstructured>=0.7.0
+openpyxl
+pandas
