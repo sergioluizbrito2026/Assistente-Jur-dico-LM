@@ -43,12 +43,34 @@ def processar_arquivos(arquivos):
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
             tmp.write(f.read())
             path = tmp.name
-        if ext == ".pdf": loader = PyPDFLoader(path)
-        elif ext == ".docx": loader = Docx2txtLoader(path)
-        elif ext == ".txt": loader = TextLoader(path, encoding='utf-8')
-        elif ext == ".xlsx": loader = UnstructuredExcelLoader(path)
-        else: continue
-        docs.extend(loader.load())
+        if ext == ".pdf":
+            loader = PyPDFLoader(path)
+            docs.extend(loader.load())
+        elif ext == ".docx":
+            loader = Docx2txtLoader(path)
+            docs.extend(loader.load())
+        elif ext == ".txt":
+            loader = TextLoader(path, encoding='utf-8')
+            docs.extend(loader.load())
+        elif ext == ".xlsx":
+            import pandas as pd
+            from langchain_core.documents import Document
+            
+            df = pd.read_excel(path)
+            texto_tabela = df.to_string(index=False)
+            
+            doc_excel = Document(page_content=texto_tabela, metadata={"source": path})
+            docs.append(doc_excel)
+            elif ext == ".xlsx":
+            import pandas as pd
+            from langchain_core.documents import Document
+            
+            df = pd.read_excel(path)
+            texto_tabela = df.to_string(index=False)
+            
+            doc_excel = Document(page_content=texto_tabela, metadata={"source": path})
+            docs.append(doc_excel)
+        else:
     
     chunks = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150).split_documents(docs)
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
