@@ -43,6 +43,7 @@ def processar_arquivos(arquivos):
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
             tmp.write(f.read())
             path = tmp.name
+            
         if ext == ".pdf":
             loader = PyPDFLoader(path)
             docs.extend(loader.load())
@@ -53,15 +54,6 @@ def processar_arquivos(arquivos):
             loader = TextLoader(path, encoding='utf-8')
             docs.extend(loader.load())
         elif ext == ".xlsx":
-            import pandas as pd
-            from langchain_core.documents import Document
-            
-            df = pd.read_excel(path)
-            texto_tabela = df.to_string(index=False)
-            
-            doc_excel = Document(page_content=texto_tabela, metadata={"source": path})
-            docs.append(doc_excel)
-            elif ext == ".xlsx":
             import pandas as pd
             from langchain_core.documents import Document
             
