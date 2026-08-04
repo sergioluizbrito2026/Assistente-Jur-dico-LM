@@ -62,10 +62,10 @@ def processar_arquivos(arquivos):
             
             doc_excel = Document(page_content=texto_tabela, metadata={"source": path})
             docs.append(doc_excel)
-        doc_excel = Document(page_content=texto_tabela, metadata={"source": path})
-        docs.append(doc_excel)
-    else:
-        continue
+        else:
+            continue
+            
+    return docs
     
     chunks = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150).split_documents(docs)
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
