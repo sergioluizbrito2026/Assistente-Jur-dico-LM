@@ -14,35 +14,33 @@ from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, Te
 # Configuração da Página
 st.set_page_config(page_title="Assistente Jurídico LM", layout="wide")
 
-# 1. Carregamento seguro da API Key (Streamlit Secrets ou Variável de Ambiente)
+# 1. Carregamento seguro da API Key
 try:
     GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 except Exception:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# 2. Validação se a chave existe no servidor
 if not GROQ_API_KEY:
     st.error("Erro de configuração: A chave da API Groq não foi encontrada nos segredos do sistema.")
     st.stop()
 
-# Configura a chave no ambiente para o LangChain/Groq utilizarem
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
-# 3. Barra Lateral (Modo SaaS - sem pedir chave ao usuário)
+# 2. Barra Lateral
 with st.sidebar:
     st.header("⚖️ Assistente Jurídico")
     st.markdown("---")
     st.header("Instruções")
     st.markdown("1. Faça o upload dos arquivos.\n2. Processe os dados.\n3. Pergunte.")
     st.warning("Aviso: a IA pode cometer erros. Verifique fatos críticos.")
-    
     st.markdown("---")
     if st.button("📧 Clique Aqui Se Precisar de Suporte"):
         st.write("sergiolmendes2026@gmail.com")
 
-# 4. Inicializa o modelo de IA de forma segura
-llm = ChatGroq(groq_api_key=GROQ_API_KEY, model="llama-3.1-8b-instant", temperature=0.2)
-# 5. Interface de Upload de Arquivos
+# 3. Inicializa o cliente oficial da Groq
+client = Groq(api_key=GROQ_API_KEY)
+
+# 4. Interface de Upload de Arquivos
 st.markdown("### Envie documentos (PDF, Word, TXT, Excel)")
 
 uploaded_files = st.file_uploader(
@@ -53,64 +51,72 @@ uploaded_files = st.file_uploader(
 )
 
 if uploaded_files:
-    with st.spinner("Processando e indexando documentos..."):
-        documents = []
-        for uploaded_file in uploaded_files:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                tmp_file.write(uploaded_file.getvalue())
-                tmp_path = tmp_file.name
+    if "vectorstore" not in st.session_state:
+        with st.spinner("Processando e indexando documentos..."):
+            documents = []
+            for uploaded_file in uploaded_files:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(uploaded_file.getvalue())
+                    tmp_path = tmp_file.name
 
-            if uploaded_file.name.endswith(".pdf"):
-                loader = PyPDFLoader(tmp_path)
-            elif uploaded_file.name.endswith(".docx"):
-                loader = Docx2txtLoader(tmp_path)
-            elif uploaded_file.name.endswith(".txt"):
-                loader = TextLoader(tmp_path)
-            elif uploaded_file.name.endswith(".xlsx"):
-                loader = UnstructuredExcelLoader(tmp_path)
-            else:
-                continue
-            
-            documents.extend(loader.load())
-            os.unlink(tmp_path)
+                if uploaded_file.name.endswith(".pdf"):
+                    loader = PyPDFLoader(tmp_path)
+                elif uploaded_file.name.endswith(".docx"):
+                    loader = Docx2txtLoader(tmp_path)
+                elif uploaded_file.name.endswith(".txt"):
+                    loader = TextLoader(tmp_path)
+                elif uploaded_file.name.endswith(".xlsx"):
+                    loader = UnstructuredExcelLoader(tmp_path)
+                else:
+                    continue
+                
+                documents.extend(loader.load())
+                os.unlink(tmp_path)
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        splits = text_splitter.split_documents(documents)
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            splits = text_splitter.split_documents(documents)
 
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-        retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+            st.session_state.vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
+            st.success("Documentos processados com sucesso!")
 
-        # Prompt e Cadeia RAG
-        template = """Responda à pergunta com base apenas no contexto fornecido abaixo. Se não souber a resposta, diga que não sabe.
-        
-        Contexto:
-        {context}
-        
-        Pergunta: {question}
-        """
-        prompt = ChatPromptTemplate.from_template(template)
+    retriever = st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3})
 
-        def format_docs(docs):
-            return "\n\n".join(doc.page_content for doc in docs)
+    # Campo de Chat
+    user_query = st.chat_input("Digite sua dúvida jurídica...")
+    if user_query:
+        with st.chat_message("user"):
+            st.write(user_query)
+        with st.chat_message("assistant"):
+            with st.spinner("Analisando documentos..."):
+                # Busca o contexto nos documentos enviados
+                relevant_docs = retriever.invoke(user_query)
+                context = "\n\n".join(doc.page_content for doc in relevant_docs)
 
-        rag_chain = (
-            {"context": retriever | format_docs, "question": RunnablePassthrough()}
-            | prompt
-            | llm
-            | StrOutputParser()
-        )
+                # Monta a estrutura da pergunta com o contexto
+                prompt_content = f"""Responda à pergunta com base apenas no contexto fornecido abaixo. Se não souber a resposta, diga que não sabe.
+                
+Contexto:
+{context}
 
-        st.success("Documentos processados com sucesso! Faça sua pergunta abaixo.")
+Pergunta: {user_query}
+"""
 
-        # Campo de Chat
-        user_query = st.chat_input("Digite sua dúvida jurídica...")
-        if user_query:
-            with st.chat_message("user"):
-                st.write(user_query)
-            with st.chat_message("assistant"):
-                with st.spinner("Analisando documentos..."):
-                    response = rag_chain.invoke(user_query)
-                    st.write(response)
+                # Chamada direta e limpa para a API da Groq
+                chat_completion = client.chat.completions.create(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": prompt_content,
+                        }
+                    ],
+                    model="llama-3.3-70b-versatile",
+                    temperature=0.2,
+                )
+                
+                response = chat_completion.choices[0].message.content
+                st.write(response)
 else:
+    if "vectorstore" in st.session_state:
+        del st.session_state.vectorstore
     st.info("Aguardando o upload de documentos para iniciar a análise.")
