@@ -13,3 +13,9 @@ beautifulsoup4
 pandas
 unstructured
 msoffcrypto-tool
+google-generativeai
+pandas
+pypdf
+python-docx
+openpyxl
+beautifulsoup4
