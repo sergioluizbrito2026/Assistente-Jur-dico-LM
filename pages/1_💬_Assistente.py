@@ -1,11 +1,7 @@
 import os
 import tempfile
 import streamlit as st
-from langchain_groq import ChatGroq
 from groq import Groq
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -89,11 +85,9 @@ if uploaded_files:
             st.write(user_query)
         with st.chat_message("assistant"):
             with st.spinner("Analisando documentos..."):
-                # Busca o contexto nos documentos enviados
                 relevant_docs = retriever.invoke(user_query)
                 context = "\n\n".join(doc.page_content for doc in relevant_docs)
 
-                # Monta a estrutura da pergunta com o contexto
                 prompt_content = f"""Responda à pergunta com base apenas no contexto fornecido abaixo. Se não souber a resposta, diga que não sabe.
                 
 Contexto:
@@ -102,7 +96,7 @@ Contexto:
 Pergunta: {user_query}
 """
 
-                # Chamada direta e limpa para a API da Groq
+                # Chamada com o modelo atualizado que aparece no seu painel
                 chat_completion = client.chat.completions.create(
                     messages=[
                         {
@@ -110,7 +104,7 @@ Pergunta: {user_query}
                             "content": prompt_content,
                         }
                     ],
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b", 
                     temperature=0.2,
                 )
                 
