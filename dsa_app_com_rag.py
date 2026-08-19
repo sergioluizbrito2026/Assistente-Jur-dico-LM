@@ -13,24 +13,33 @@ from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, Te
 # Configuração da Página
 st.set_page_config(page_title="Assistente Jurídico LM", layout="wide")
 
-# Barra Lateral - Design Solicitado
+# 1. Carregamento seguro da API Key (Streamlit Secrets ou Variável de Ambiente)
+try:
+    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+except Exception:
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# 2. Validação se a chave existe no servidor
+if not GROQ_API_KEY:
+    st.error("Erro de configuração: A chave da API Groq não foi encontrada nos segredos do sistema.")
+    st.stop()
+
+# Configura a chave no ambiente para o LangChain/Groq utilizarem
+os.environ["GROQ_API_KEY"] = GROQ_API_KEY
+
+# 3. Barra Lateral (Modo SaaS - sem pedir chave ao usuário)
 with st.sidebar:
-    st.header("Configurações")
-    api_key = st.text_input("Coloque aqui sua GROQ API Key e pressione Enter", type="password")
+    st.header("⚖️ Assistente Jurídico")
     st.markdown("---")
     st.header("Instruções")
-    st.markdown("1. Informe sua chave.\n2. Faça o upload dos arquivos.\n3. Pergunte.")
+    st.markdown("1. Faça o upload dos arquivos.\n2. Processe os dados.\n3. Pergunte.")
     st.warning("Aviso: a IA pode cometer erros. Verifique fatos críticos.")
+    
+    st.markdown("---")
     if st.button("📧 Clique Aqui Se Precisar de Suporte"):
         st.write("sergiolmendes2026@gmail.com")
 
-if not api_key:
-    st.markdown("# ⚖️ Assistente Jurídico")
-    st.warning("Informe a GROQ API Key na barra lateral para continuar.")
-    st.stop()
-
-os.environ["GROQ_API_KEY"] = api_key
-# Modelo atualizado e disponível
+# 4. Inicializa o modelo de IA de forma segura
 llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
 
 st.markdown("# ⚖️ Assistente Jurídico")
