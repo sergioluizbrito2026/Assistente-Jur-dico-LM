@@ -40,7 +40,7 @@ with st.sidebar:
         st.write("sergiolmendes2026@gmail.com")
 
 # 4. Inicializa o modelo de IA de forma segura
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
+llm = ChatGroq(groq_api_key=GROQ_API_KEY, model="llama-3.3-70b-versatile", temperature=0.2)
 
 # 5. Interface de Upload de Arquivos
 st.markdown("Envie documentos (PDF, Word, TXT, Excel)")
