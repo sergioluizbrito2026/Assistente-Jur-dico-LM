@@ -2,6 +2,7 @@ import os
 import tempfile
 import streamlit as st
 from langchain_groq import ChatGroq
+from groq import Groq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
@@ -42,7 +43,7 @@ with st.sidebar:
 # 4. Inicializa o modelo de IA de forma segura
 llm = ChatGroq(groq_api_key=GROQ_API_KEY, model="llama-3.1-8b-instant", temperature=0.2)
 # 5. Interface de Upload de Arquivos
-st.markdown("Envie documentos (PDF, Word, TXT, Excel)")
+st.markdown("### Envie documentos (PDF, Word, TXT, Excel)")
 
 uploaded_files = st.file_uploader(
     "Envie seus documentos", 
