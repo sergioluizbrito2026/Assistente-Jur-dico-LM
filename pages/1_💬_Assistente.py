@@ -62,7 +62,7 @@ authenticator = stauth.Authenticate(
 )
 
 # Renderiza a tela de login
-name, authentication_status, username = authenticator.login('Login do Sistema', 'main')
+name, authentication_status, username = authenticator.login('Login', location='main')
 
 if authentication_status == False:
     st.error('❌ Usuário ou senha incorretos.')
