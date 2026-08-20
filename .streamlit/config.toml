@@ -1,6 +1,6 @@
 [theme]
-primaryColor = "#00F2FE"      # Um ciano/azul petróleo neon super brilhante para botões e links
-backgroundColor = "#0A2533"   # Um azul petróleo escuro profundo e rico para o fundo
-secondaryBackgroundColor = "#13384A" # Um tom intermediário para a barra lateral e blocos
-textColor = "#E0F7FA"         # Um branco quase ciano para o texto, suave aos olhos
-font = "sans serif"           # Mantém a fonte limpa
+primaryColor = "#00F2FE"
+backgroundColor = "#051621"        # Um azul petróleo bem profundo, escuro e com acabamento elegante
+secondaryBackgroundColor = "#0B2538" # Um tom ligeiramente mais claro para cards e blocos
+textColor = "#E0F7FA"
+font = "sans serif"
