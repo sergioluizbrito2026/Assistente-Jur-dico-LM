@@ -6,10 +6,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
-import os
-from langchain.document_loaders import PyPDFLoader
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
 
 # Configuração da Página
 st.set_page_config(page_title="Assistente Jurídico IA", layout="wide")
@@ -76,7 +72,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- 1. CONTROLE DE LOGIN (Apenas a versão limpa e funcional) ---
+# --- 1. CONTROLE DE LOGIN ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
@@ -98,9 +94,7 @@ if not st.session_state.authenticated:
             else:
                 st.error("❌ E-mail ou senha incorretos.")
     
-    st.stop() # Interrompe a execução até o usuário fazer login
-
-# --- SE O USUÁRIO ESTIVER LOGADO, O SISTEMA SEGUE DAQUI ---
+    st.stop()
 
 name = st.session_state.name
 
@@ -120,118 +114,157 @@ client = Groq(api_key=GROQ_API_KEY)
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- Barra Lateral (Perfil e Logout) ---
+# --- Diretório da Base de Conhecimento Corporativa ---
+PASTA_BASE_CORPORATIVA = "base_conhecimento_corporativa"
+os.makedirs(PASTA_BASE_CORPORATIVA, exist_ok=True)
+
+# --- Barra Lateral (Navegação, Perfil e Logout) ---
 with st.sidebar:
-    st.sidebar.markdown("⚖️ Painel Jurídico")
+    st.markdown("⚖️ **Painel Jurídico**")
     st.markdown(f"👤 Olá, **{name}**")
+    st.markdown("---")
     
+    # Seletor de páginas (Chat vs Base de Conhecimento)
+    pagina_selecionada = st.radio(
+        "Navegação", 
+        ["Assistente Jurídico", "Base de Conhecimento"]
+    )
+    
+    st.markdown("---")
+    
+    if pagina_selecionada == "Assistente Jurídico":
+        st.info("1. Envie seus documentos.\n2. Use as sugestões ou digite.\n3. Analise as respostas com fontes.")
+        if st.button("🗑️ Limpar Histórico"):
+            st.session_state.messages = []
+            st.rerun()
+            
     # Botão de Logout simples
     if st.button("🚪 Sair do Sistema"):
         st.session_state.authenticated = False
         st.session_state.messages = []
         st.rerun()
-        
+
+# --- LÓGICA DA PÁGINA: BASE DE CONHECIMENTO ---
+if pagina_selecionada == "Base de Conhecimento":
+    st.markdown("## 📚 Gestão da Base de Conhecimento Corporativa")
+    st.markdown("Faça o upload de minutas padrão, teses ou documentos institucionais do escritório para consulta permanente.")
+    
+    arquivos_base = st.file_uploader(
+        "Envie documentos para a base da empresa (PDF, DOCX, TXT)", 
+        type=["pdf", "docx", "txt"], 
+        accept_multiple_files=True
+    )
+    
+    if arquivos_base:
+        if st.button("Salvar na Base da Empresa"):
+            with st.spinner("Salvando documentos na base corporativa..."):
+                for arquivo in arquivos_base:
+                    caminho_arquivo = os.path.join(PASTA_BASE_CORPORATIVA, arquivo.name)
+                    with open(caminho_arquivo, "wb") as f:
+                        f.write(arquivo.getbuffer())
+                st.success("✅ Documentos adicionados à base corporativa com sucesso!")
+
     st.markdown("---")
-    st.info("1. Envie seus documentos.\n2. Use as sugestões ou digite.\n3. Analise as respostas com fontes.")
+    st.markdown("### 🗂️ Documentos Atuais na Base:")
     
-    if st.button("🗑️ Limpar Histórico"):
-        st.session_state.messages = []
-        st.rerun()
+    arquivos_existentes = os.listdir(PASTA_BASE_CORPORATIVA)
+    if arquivos_existentes:
+        for arq in arquivos_existentes:
+            st.text(f"📄 {arq}")
+    else:
+        st.info("Nenhum documento cadastrado na base corporativa ainda.")
 
-# --- Interface Principal ---
-st.title("⚖️ Assistente Jurídico Inteligente")
-st.markdown("Análise avançada de contratos e documentos com segurança de dados.")
-
-# --- Upload de Arquivos ---
-uploaded_files = st.file_uploader("📄 Envie documentos (PDF, Word, TXT)", type=["pdf", "docx", "txt"], accept_multiple_files=True)
-
-if uploaded_files and "vectorstore" not in st.session_state:
-    with st.spinner("⚙️ Processando e indexando documentos..."):
-        documents = []
-        for uploaded_file in uploaded_files:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                tmp_file.write(uploaded_file.getvalue())
-                tmp_path = tmp_file.name
-            
-            if uploaded_file.name.endswith(".pdf"): loader = PyPDFLoader(tmp_path)
-            elif uploaded_file.name.endswith(".docx"): loader = Docx2txtLoader(tmp_path)
-            else: loader = TextLoader(tmp_path)
-            
-            documents.extend(loader.load())
-            os.unlink(tmp_path)
-
-        splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-        st.session_state.vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-        st.success("✅ Documentos indexados com sucesso!")
-        st.rerun()
-
-# --- Botões de Sugestão Rápida ---
-# --- Botões de Sugestão Rápida e Entrada de Chat Unificadas ---
-active_query = None
-
-if uploaded_files:
-    st.markdown("---")
-    st.markdown("#### 💡 Sugestões de perguntas rápidas:")
-    col1, col2, col3 = st.columns(3)
+# --- LÓGICA DA PÁGINA: ASSISTENTE JURÍDICO (CHAT) ---
+elif pagina_selecionada == "Assistente Jurídico":
+    st.title("⚖️ Assistente Jurídico Inteligente")
+    st.markdown("Análise avançada de contratos e documentos com segurança de dados.")
     
-    with col1:
-        if st.button("📄 Resumir Contrato"):
-            active_query = "Faça um resumo geral dos principais pontos deste contrato."
-    with col2:
-        if st.button("💰 Valor Total"):
-            active_query = "Qual é o valor total do contrato e as condições de pagamento?"
-    with col3:
-        if st.button("⚠️ Multas e Rescisão"):
-            active_query = "Quais são as multas previstas e as regras de rescisão?"
+    # --- Upload de Arquivos para o Chat ---
+    uploaded_files = st.file_uploader("📄 Envie documentos (PDF, Word, TXT)", type=["pdf", "docx", "txt"], accept_multiple_files=True)
 
-# Pega também o que o usuário digitar no chat input
-chat_input_query = st.chat_input("Digite sua dúvida jurídica...")
-if chat_input_query:
-    active_query = chat_input_query
-
-# --- Exibição do Histórico do Chat ---
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# --- Execução da IA (Acionada por botão ou chat) ---
-if active_query:
-    st.session_state.messages.append({"role": "user", "content": active_query})
-    with st.chat_message("user"):
-        st.markdown(active_query)
-    
-    # Verifica se o banco vetorial existe (ou seja, se um arquivo foi processado)
-    if "vectorstore" in st.session_state and st.session_state.vectorstore is not None:
-        with st.chat_message("assistant"):
-            with st.spinner("🤔 Analisando documentos com IA..."):
-                retriever = st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3})
-                docs = retriever.invoke(active_query)
+    if uploaded_files and "vectorstore" not in st.session_state:
+        with st.spinner("⚙️ Processando e indexando documentos..."):
+            documents = []
+            for uploaded_file in uploaded_files:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                    tmp_file.write(uploaded_file.getvalue())
+                    tmp_path = tmp_file.name
                 
-                # Se não encontrar trechos relevantes no documento
-                if not docs:
-                    st.warning("⚠️ Não encontrei essa informação nos documentos carregados.")
-                else:
-                    context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
+                if uploaded_file.name.endswith(".pdf"): loader = PyPDFLoader(tmp_path)
+                elif uploaded_file.name.endswith(".docx"): loader = Docx2txtLoader(tmp_path)
+                else: loader = TextLoader(tmp_path)
+                
+                documents.extend(loader.load())
+                os.unlink(tmp_path)
+
+            splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
+            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+            st.session_state.vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
+            st.success("✅ Documentos indexados com sucesso!")
+            st.rerun()
+
+    # --- Botões de Sugestão Rápida e Entrada de Chat Unificadas ---
+    active_query = None
+
+    if uploaded_files:
+        st.markdown("---")
+        st.markdown("#### 💡 Sugestões de perguntas rápidas:")
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("📄 Resumir Contrato"):
+                active_query = "Faça um resumo geral dos principais pontos deste contrato."
+        with col2:
+            if st.button("💰 Valor Total"):
+                active_query = "Qual é o valor total do contrato e as condições de pagamento?"
+        with col3:
+            if st.button("⚠️ Multas e Rescisão"):
+                active_query = "Quais são as multas previstas e as regras de rescisão?"
+
+    # Pega também o que o usuário digitar no chat input
+    chat_input_query = st.chat_input("Digite sua dúvida jurídica...")
+    if chat_input_query:
+        active_query = chat_input_query
+
+    # --- Exibição do Histórico do Chat ---
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    # --- Execução da IA (Acionada por botão ou chat) ---
+    if active_query:
+        st.session_state.messages.append({"role": "user", "content": active_query})
+        with st.chat_message("user"):
+            st.markdown(active_query)
+        
+        if "vectorstore" in st.session_state and st.session_state.vectorstore is not None:
+            with st.chat_message("assistant"):
+                with st.spinner("🤔 Analisando documentos com IA..."):
+                    retriever = st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3})
+                    docs = retriever.invoke(active_query)
                     
-                    prompt_content = f"""Você é um assistente jurídico restrito. Responda à pergunta do usuário **apenas** com base no contexto fornecido abaixo. Se a resposta não estiver no contexto, informe que o documento não contém essa informação. Não utilize conhecimento externo.
-                    
+                    if not docs:
+                        st.warning("⚠️ Não encontrei essa informação nos documentos carregados.")
+                    else:
+                        context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
+                        
+                        prompt_content = f"""Você é um assistente jurídico restrito. Responda à pergunta do usuário **apenas** com base no contexto fornecido abaixo. Se a resposta não estiver no contexto, informe que o documento não contém essa informação. Não utilize conhecimento externo.
+                        
 Contexto:
 {context}
 
 Pergunta: {active_query}
 """
-                    
-                    chat_completion = client.chat.completions.create(
-                        messages=[{"role": "user", "content": prompt_content}],
-                        model="openai/gpt-oss-120b",
-                        temperature=0.1 # Temperatura baixa para focar estritamente no texto
-                    )
-                    
-                    response = chat_completion.choices[0].message.content
-                    st.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
-    else:
-        # Se nenhum documento foi enviado, bloqueia e avisa o usuário
-        with st.chat_message("assistant"):
-            st.error("⚠️ Atenção: Por favor, faça o upload de um documento (PDF, Word ou TXT) antes de realizar consultas.")
+                        
+                        chat_completion = client.chat.completions.create(
+                            messages=[{"role": "user", "content": prompt_content}],
+                            model="openai/gpt-oss-120b",
+                            temperature=0.1
+                        )
+                        
+                        response = chat_completion.choices[0].message.content
+                        st.markdown(response)
+                        st.session_state.messages.append({"role": "assistant", "content": response})
+        else:
+            with st.chat_message("assistant"):
+                st.error("⚠️ Atenção: Por favor, faça o upload de um documento (PDF, Word ou TXT) antes de realizar consultas.")
