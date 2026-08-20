@@ -6,42 +6,39 @@ st.set_page_config(
     layout="wide"
 )
 
-# CSS Customizado para centralizar e compactar a tela de login com elegância
+# Estilização refinada para o card de login
 st.markdown("""
     <style>
-    /* Centraliza o formulário de login em um card compacto na tela */
-    [data-testid="stForm"] {
-        max-width: 450px;
-        margin: 40px auto;
-        padding: 35px;
-        background: linear-gradient(145deg, #131A26 0%, #0B1017 100%);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-    
-    /* Estilização dos inputs para ficarem proporcionais */
-    [data-testid="stTextInput"] input {
-        background-color: #1A2332;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 8px;
-        color: #F8FAFC;
-    }
-    
-    /* Botão de login com destaque profissional */
-    [data-testid="stFormSubmitButton"] button {
-        width: 100%;
-        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        padding: 10px;
-        transition: all 0.3s ease;
-    }
-    [data-testid="stFormSubmitButton"] button:hover {
-        background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-        box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+    .login-header {
+        text-align: center;
+        margin-bottom: 25px;
     }
     </style>
 """, unsafe_allow_html=True)
+
+# Cria colunas para centralizar o formulário, deixando as laterais vazias
+col_left, col_center, col_right = st.columns([1, 1.2, 1])
+
+with col_center:
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # Cabeçalho estilizado
+    st.markdown("""
+        <div class="login-header">
+            <h2>⚖️ Assistente Jurídico LM AI</h2>
+            <p style="color: #94A3B8;">Faça login para acessar o painel restrito.</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Formulário de Acesso isolado no card central
+    with st.form("form_login"):
+        email = st.text_input("E-mail de Acesso", placeholder="seu.email@escritorio.com")
+        senha = st.text_input("Senha", type="password", placeholder="••••••••")
+        
+        submitted = st.form_submit_button("Entrar no Sistema", use_container_width=True)
+        
+        if submitted:
+            if email and senha:
+                st.success("Login realizado com sucesso!")
+            else:
+                st.error("Preencha todos os campos.")
