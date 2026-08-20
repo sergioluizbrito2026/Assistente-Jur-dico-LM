@@ -1,32 +1,53 @@
 import streamlit as st
 
-# Configuração da página e layout padrão
 st.set_page_config(
-    page_title="Painel Jurídico AI",
+    page_title="Painel Jurídico AI - Enterprise",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Estilização visual personalizada para alinhar com o design moderno da barra lateral
+# Estilização CSS Global Estilo SaaS Executivo
 st.markdown("""
     <style>
-    /* Estilos globais e refinamento da barra lateral */
-    section[data-testid="stSidebar"] {
-        background-color: #0E1116;
-        border-right: 1px solid #1F2937;
+    /* Fundo geral da aplicação e padrão de fontes */
+    .stApp {
+        background-color: #0B0E14;
+        color: #E2E8F0;
+        font-family: 'Inter', sans-serif;
     }
-    .sidebar-title {
-        font-size: 20px;
-        font-weight: 700;
-        color: #F3F4F6;
-        text-align: center;
-        margin-bottom: 20px;
+    
+    /* Customização da Barra Lateral */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0E131F 0%, #07090D 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    /* Cartões e caixas estilizadas */
+    .metric-card {
+        background: linear-gradient(135deg, rgba(26, 32, 44, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Botões personalizados */
+    .stButton>button {
+        background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+        color: #F8FAFC;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        border-color: #3B82F6;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Definição das páginas do sistema utilizando o st.Page nativo do Streamlit
+# Definição das Páginas do Sistema
 dashboard_page = st.Page(
     "dashboard.py",
     title="Painel Principal",
@@ -46,14 +67,13 @@ bot_page = st.Page(
     icon="🤖"
 )
 
-# Navegação organizada em seções limpas
+# Navegação unificada
 pg = st.navigation({
-    "⚖️ Módulos do Sistema": [
+    "⚖️ Módulos Executivos": [
         dashboard_page,
         assistente_page,
         bot_page
     ]
 })
 
-# Executa a navegação gerenciada
 pg.run()
