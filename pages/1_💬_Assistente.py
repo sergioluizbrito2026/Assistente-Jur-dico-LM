@@ -48,33 +48,35 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Estilização Visual (Azul Petróleo e Destaques Ciano) ---
+# --- Estilização Visual (Bordas e Botões Ajustados) ---
 st.markdown("""
     <style>
-    /* Estilo suave e confortável para os botões */
+    /* Botões Principais: Borda Sutil e Texto Claro */
     div.stButton > button:not(:disabled) {
+        /* Alteramos a borda para um azul-petróleo escuro e elegante */
         border: 1px solid #2B5265 !important;
         color: #E0F7FA !important;
         border-radius: 8px !important;
         background-color: #13384A !important;
         transition: all 0.2s ease !important;
-        font-weight: 500 !important;
     }
     
-    /* Efeito Hover suave (ao passar o mouse) */
+    /* Efeito Hover (ao passar o mouse): Acende levemente */
     div.stButton > button:hover:not(:disabled) {
-        background-color: #1D4E64 !important;
-        border-color: #00F2FE !important;
+        border-color: #00F2FE !important; /* Aqui o brilho sutil é aceitável */
         color: #FFFFFF !important;
+        background-color: #1D4E64 !important;
         box-shadow: none !important;
     }
     
-    /* Estilização da barra de input do chat mais discreta */
+    /* Estilização da barra de input do chat (também ajustada) */
     [data-testid="stChatInput"] {
         max-width: 750px;
         margin: 0 auto;
         border-radius: 10px !important;
         background-color: #13384A !important;
-        border: 1px solid #2B5265 !important;
+        /* Borda escura e discreta no input */
+        border: 1px solid #2B5265 !important; 
     }
     </style>
 """, unsafe_allow_html=True)
