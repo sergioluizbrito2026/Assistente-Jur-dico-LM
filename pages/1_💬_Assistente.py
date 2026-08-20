@@ -84,10 +84,12 @@ st.session_state.vectorstore = carregar_vectorstore()
 
 # -----------------------------------------------------------------------------
 # 3. BARRA LATERAL (NAVEGAÇÃO E METADADOS)
-# -----------------------------------------------------------------------------
-# --- BARRA LATERAL (VERSÃO LIMPA E SEM DUPLICAÇÕES) ---
+# --- BARRA LATERAL (LIMPEZA TOTAL) ---
+# Primeiro, removemos qualquer conteúdo prévio da sidebar
+st.sidebar.empty()
+
 with st.sidebar:
-    # Apenas o essencial, sem duplicar o "app"
+    # Removemos o "app" que estava duplicando
     st.markdown("💬 **Assistente**")
     st.markdown("---")
     st.markdown("⚖️ **Painel Jurídico**")
@@ -95,11 +97,12 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### Navegação")
-    # Este é o rádio que controla a página
-    pagina = st.radio("Selecione a página:", ["Assistente Jurídico", "Base de Conhecimento"], label_visibility="collapsed")
+    # O radio precisa ser atribuído à variável 'pagina'
+    pagina = st.radio("Selecione:", ["Assistente Jurídico", "Base de Conhecimento"], label_visibility="collapsed")
     
     st.markdown("---")
     st.markdown("### 📁 Documentos na Base:")
+    # Verifica a pasta novamente
     arquivos_existentes = [f for f in os.listdir(PASTA_BASE_CORPORATIVA) if not f.startswith(".")]
     if arquivos_existentes:
         for arq in arquivos_existentes:
