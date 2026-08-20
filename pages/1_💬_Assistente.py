@@ -51,16 +51,16 @@ st.markdown("""
 st.markdown(
     """
     <style>
-    /* Altera o fundo principal da página */
+    /* Fundo com gradiente mais escuro e fechado */
     .stApp {
-        background: linear-gradient(135deg, #1a0b2e 0%, #2a0845 35%, #0d0d0d 100%);
+        background: linear-gradient(135deg, #0f0717 0%, #170524 40%, #050505 100%);
         background-attachment: fixed;
     }
     
-    /* Deixa a barra lateral com um tom escuro harmonioso */
+    /* Barra lateral bem escura combinando */
     [data-testid="stSidebar"] {
-        background-color: #0d0d0d;
-        border-right: 1px solid #2a0845;
+        background-color: #08040c;
+        border-right: 1px solid #170524;
     }
     </style>
     """,
