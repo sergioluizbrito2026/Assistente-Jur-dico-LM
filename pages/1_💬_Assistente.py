@@ -206,31 +206,37 @@ if active_query:
     with st.chat_message("user"):
         st.markdown(active_query)
     
-    if "vectorstore" in st.session_state:
+    # Verifica se o banco vetorial existe (ou seja, se um arquivo foi processado)
+    if "vectorstore" in st.session_state and st.session_state.vectorstore is not None:
         with st.chat_message("assistant"):
             with st.spinner("🤔 Analisando documentos com IA..."):
                 retriever = st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3})
                 docs = retriever.invoke(active_query)
                 
-                context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
-                
-                prompt_content = f"""Com base no contexto jurídico abaixo, responda à pergunta do usuário de forma clara e técnica. Cite a fonte do documento.
-                
+                # Se não encontrar trechos relevantes no documento
+                if not docs:
+                    st.warning("⚠️ Não encontrei essa informação nos documentos carregados.")
+                else:
+                    context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
+                    
+                    prompt_content = f"""Você é um assistente jurídico restrito. Responda à pergunta do usuário **apenas** com base no contexto fornecido abaixo. Se a resposta não estiver no contexto, informe que o documento não contém essa informação. Não utilize conhecimento externo.
+                    
 Contexto:
 {context}
 
 Pergunta: {active_query}
 """
-                
-                chat_completion = client.chat.completions.create(
-                    messages=[{"role": "user", "content": prompt_content}],
-                    model="openai/gpt-oss-120b",
-                    temperature=0.2
-                )
-                
-                response = chat_completion.choices[0].message.content
-                st.markdown(response)
-                st.session_state.messages.append({"role": "assistant", "content": response})
+                    
+                    chat_completion = client.chat.completions.create(
+                        messages=[{"role": "user", "content": prompt_content}],
+                        model="openai/gpt-oss-120b",
+                        temperature=0.1 # Temperatura baixa para focar estritamente no texto
+                    )
+                    
+                    response = chat_completion.choices[0].message.content
+                    st.markdown(response)
+                    st.session_state.messages.append({"role": "assistant", "content": response})
     else:
+        # Se nenhum documento foi enviado, bloqueia e avisa o usuário
         with st.chat_message("assistant"):
-            st.write("⚠️ Por favor, faça o upload de um documento primeiro.")
+            st.error("⚠️ Atenção: Por favor, faça o upload de um documento (PDF, Word ou TXT) antes de realizar consultas.")
