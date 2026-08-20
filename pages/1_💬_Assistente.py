@@ -170,44 +170,45 @@ if uploaded_files and "vectorstore" not in st.session_state:
         st.rerun()
 
 # --- Botões de Sugestão Rápida ---
+# --- Botões de Sugestão Rápida e Entrada de Chat Unificadas ---
+active_query = None
+
 if uploaded_files:
     st.markdown("---")
     st.markdown("#### 💡 Sugestões de perguntas rápidas:")
     col1, col2, col3 = st.columns(3)
     
-    suggested_query = None
     with col1:
         if st.button("📄 Resumir Contrato"):
-            suggested_query = "Faça um resumo geral dos principais pontos deste contrato."
+            active_query = "Faça um resumo geral dos principais pontos deste contrato."
     with col2:
         if st.button("💰 Valor Total"):
-            suggested_query = "Qual é o valor total do contrato e as condições de pagamento?"
+            active_query = "Qual é o valor total do contrato e as condições de pagamento?"
     with col3:
         if st.button("⚠️ Multas e Rescisão"):
-            suggested_query = "Quais são as multas previstas e as regras de rescisão?"
-            
-    if suggested_query:
-        st.session_state.messages.append({"role": "user", "content": suggested_query})
-        st.rerun()
+            active_query = "Quais são as multas previstas e as regras de rescisão?"
+
+# Pega também o que o usuário digitar no chat input
+chat_input_query = st.chat_input("Digite sua dúvida jurídica...")
+if chat_input_query:
+    active_query = chat_input_query
 
 # --- Exibição do Histórico do Chat ---
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- Entrada de Texto do Chat ---
-user_query = st.chat_input("Digite sua dúvida jurídica...")
-
-if user_query:
-    st.session_state.messages.append({"role": "user", "content": user_query})
+# --- Execução da IA (Acionada por botão ou chat) ---
+if active_query:
+    st.session_state.messages.append({"role": "user", "content": active_query})
     with st.chat_message("user"):
-        st.markdown(user_query)
+        st.markdown(active_query)
     
     if "vectorstore" in st.session_state:
         with st.chat_message("assistant"):
-            with st.spinner("🤔 Analisando documentos..."):
+            with st.spinner("🤔 Analisando documentos com IA..."):
                 retriever = st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3})
-                docs = retriever.invoke(user_query)
+                docs = retriever.invoke(active_query)
                 
                 context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
                 
@@ -216,7 +217,7 @@ if user_query:
 Contexto:
 {context}
 
-Pergunta: {user_query}
+Pergunta: {active_query}
 """
                 
                 chat_completion = client.chat.completions.create(
