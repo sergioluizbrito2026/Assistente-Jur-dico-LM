@@ -19,3 +19,15 @@ pypdf
 python-docx
 openpyxl
 beautifulsoup4
+streamlit>=1.30.0
+streamlit-authenticator
+PyYAML
+groq
+langchain
+langchain-community
+langchain-text-splitters
+langchain-huggingface
+sentence-transformers
+chromadb
+pypdf
+docx2txt
