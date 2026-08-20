@@ -10,6 +10,43 @@ from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, Te
 # Configuração da Página
 st.set_page_config(page_title="Assistente Jurídico SaaS", layout="wide")
 
+st.markdown("""
+    <style>
+    /* Garante a estilização correta dos botões do Streamlit */
+    div.stButton > button:not(:disabled) {
+        border: 2px solid #00F2FE !important;
+        color: #00F2FE !important;
+        border-radius: 8px !important;
+        background-color: #0A2533 !important;
+        transition: all 0.3s ease !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Efeito Hover (ao passar o mouse) */
+    div.stButton > button:hover:not(:disabled) {
+        background-color: #00F2FE !important;
+        color: #0A2533 !important;
+        border-color: #00F2FE !important;
+        box-shadow: 0 4px 10px rgba(0, 242, 254, 0.3) !important;
+    }
+    
+    /* Efeito Active (ao clicar) */
+    div.stButton > button:active:not(:disabled) {
+        background-color: #E0F7FA !important;
+        transform: translateY(1px) !important;
+    }
+    
+    /* Estiliza a barra de input do chat */
+    [data-testid="stChatInput"] {
+        max-width: 750px;
+        margin: 0 auto;
+        border-radius: 10px !important;
+        background-color: #13384A !important;
+        border: 1px solid #00F2FE !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- Estilização Visual (Azul Petróleo e Destaques Ciano) ---
 st.markdown("""
     <style>
