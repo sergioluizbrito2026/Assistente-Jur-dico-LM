@@ -58,7 +58,7 @@ if user_input := st.chat_input("Digite a mensagem do cliente..."):
     try:
         llm = ChatGroq(
             temperature=0.3,
-            model_name="llama-3.3-70b-versatile",
+            model_name="llama-3.1-8b-instant",
             groq_api_key=GROQ_API_KEY
         )
         
