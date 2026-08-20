@@ -47,39 +47,25 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Estilização Visual (Azul Petróleo e Destaques Ciano) ---
-# --- Estilização Visual (Bordas e Botões Ajustados) ---
-st.markdown("""
+# --- CSS para aplicar o fundo com gradiente ---
+st.markdown(
+    """
     <style>
-    /* Botões Principais: Borda Sutil e Texto Claro */
-    div.stButton > button:not(:disabled) {
-        /* Alteramos a borda para um azul-petróleo escuro e elegante */
-        border: 1px solid #2B5265 !important;
-        color: #E0F7FA !important;
-        border-radius: 8px !important;
-        background-color: #13384A !important;
-        transition: all 0.2s ease !important;
+    /* Altera o fundo principal da página */
+    .stApp {
+        background: linear-gradient(135deg, #1a0b2e 0%, #2a0845 35%, #0d0d0d 100%);
+        background-attachment: fixed;
     }
     
-    /* Efeito Hover (ao passar o mouse): Acende levemente */
-    div.stButton > button:hover:not(:disabled) {
-        border-color: #00F2FE !important; /* Aqui o brilho sutil é aceitável */
-        color: #FFFFFF !important;
-        background-color: #1D4E64 !important;
-        box-shadow: none !important;
-    }
-    
-    /* Estilização da barra de input do chat (também ajustada) */
-    [data-testid="stChatInput"] {
-        max-width: 750px;
-        margin: 0 auto;
-        border-radius: 10px !important;
-        background-color: #13384A !important;
-        /* Borda escura e discreta no input */
-        border: 1px solid #2B5265 !important; 
+    /* Deixa a barra lateral com um tom escuro harmonioso */
+    [data-testid="stSidebar"] {
+        background-color: #0d0d0d;
+        border-right: 1px solid #2a0845;
     }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
 # --- 1. CONTROLE DE LOGIN (Apenas a versão limpa e funcional) ---
 if "authenticated" not in st.session_state:
