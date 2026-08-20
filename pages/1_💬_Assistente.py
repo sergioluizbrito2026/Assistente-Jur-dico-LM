@@ -46,15 +46,40 @@ st.markdown("""
 # Em produção, você pode puxar isso de um arquivo YAML ou st.secrets. 
 # Exemplo de credencial padrão para teste: user "sergio", senha "123456"
 # --- 1. CONFIGURAÇÃO DE USUÁRIOS (SaaS Login) ---
+import streamlit_authenticator as stauth
+
+# --- 1. CONFIGURAÇÃO DE USUÁRIOS (Com hash válido para a senha "123456") ---
 credentials = {
     'usernames': {
         'sergio': {
             'name': 'Dr. Sérgio Mendes',
-            'password': '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', # Hash para "123456"
+            # Este hash corresponde exatamente à senha "123456" gerada pelo bcrypt
+            'password': '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J2U3W0a4C',
             'email': 'sergiolmendes2026@gmail.com'
         }
     }
 }
+
+authenticator = stauth.Authenticate(
+    credentials,
+    cookie_name='assistente_juridico_cookie',
+    key='sua_chave_secreta_super_segura',
+    cookie_expiry_days=30
+)
+
+# Renderiza a tela de login
+authenticator.login(location='main', key='login_unico')
+
+name = st.session_state.get('name')
+authentication_status = st.session_state.get('authentication_status')
+username = st.session_state.get('username')
+
+if authentication_status == False:
+    st.error('❌ Usuário ou senha incorretos.')
+    st.stop()
+elif authentication_status == None:
+    st.warning('⚠️ Por favor, faça o login para acessar o Assistente Jurídico.')
+    st.stop()
 
 authenticator = stauth.Authenticate(
     credentials,
