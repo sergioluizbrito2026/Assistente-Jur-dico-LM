@@ -6,6 +6,19 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
+import shutil
+
+def limpar_base_dados():
+    # Deleta a pasta física de documentos
+    if os.path.exists(PASTA_BASE_CORPORATIVA):
+        shutil.rmtree(PASTA_BASE_CORPORATIVA)
+        os.makedirs(PASTA_BASE_CORPORATIVA)
+    # Deleta o banco de dados vetorial
+    if os.path.exists("chroma_db_corporativo"):
+        shutil.rmtree("chroma_db_corporativo")
+    # Limpa estado da sessão
+    st.session_state.vectorstore = None
+    st.rerun()
 
 # Configuração da Página
 st.set_page_config(page_title="Assistente Jurídico IA - SaaS", layout="wide")
@@ -76,20 +89,16 @@ with st.sidebar:
     st.markdown(f"👤 Olá, **{st.session_state.name}**")
     pagina = st.radio("Navegação", ["Assistente Jurídico", "Base de Conhecimento"])
     
-    # Listar arquivos presentes na pasta física
-    arquivos_existentes = [f for f in os.listdir(PASTA_BASE_CORPORATIVA) if not f.startswith(".")]
-    
     st.markdown("---")
     st.markdown("📁 **Documentos na Base:**")
+    arquivos_existentes = [f for f in os.listdir(PASTA_BASE_CORPORATIVA) if not f.startswith(".")]
     if arquivos_existentes:
-        for arq in arquivos_existentes:
-            st.caption(f"• {arq}")
-    else:
-        st.caption("Nenhum documento cadastrado.")
-
-    if st.button("🚪 Sair do Sistema"):
-        st.session_state.authenticated = False
-        st.rerun()
+        for arq in arquivos_existentes: st.caption(f"• {arq}")
+    else: st.caption("Nenhum documento.")
+    
+    st.markdown("---")
+    if st.button("🚪 Sair do Sistema"): 
+        st.session_state.authenticated = False; st.rerun()
 
 # -----------------------------------------------------------------------------
 # 4. PÁGINA: BASE DE CONHECIMENTO (INDEXAÇÃO COM METADADOS)
