@@ -144,7 +144,7 @@ with st.sidebar:
         st.rerun()
 
 # --- Interface Principal ---
-st.title("🤖 Assistente Jurídico Inteligente")
+st.title("⚖️ Assistente Jurídico Inteligente")
 st.markdown("Análise avançada de contratos e documentos com segurança de dados.")
 
 # --- Upload de Arquivos ---
