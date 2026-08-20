@@ -86,19 +86,30 @@ st.session_state.vectorstore = carregar_vectorstore()
 # 3. BARRA LATERAL (NAVEGAÇÃO E METADADOS)
 # -----------------------------------------------------------------------------
 with st.sidebar:
+    st.markdown("### app")
+    st.markdown("💬 **Assistente**")
+    st.markdown("---")
+    st.markdown("⚖️ **Painel Jurídico**")
     st.markdown(f"👤 Olá, **{st.session_state.name}**")
-    pagina = st.radio("Navegação", ["Assistente Jurídico", "Base de Conhecimento"])
     
     st.markdown("---")
-    st.markdown("📁 **Documentos na Base:**")
+    st.markdown("### Navegação")
+    pagina = st.radio("Selecione a página:", ["Assistente Jurídico", "Base de Conhecimento"], label_visibility="collapsed")
+    
+    st.markdown("---")
+    st.markdown("### 📁 Documentos na Base:")
     arquivos_existentes = [f for f in os.listdir(PASTA_BASE_CORPORATIVA) if not f.startswith(".")]
     if arquivos_existentes:
-        for arq in arquivos_existentes: st.caption(f"• {arq}")
-    else: st.caption("Nenhum documento.")
-    
+        for arq in arquivos_existentes:
+            st.caption(f"• {arq}")
+    else:
+        st.caption("Nenhum documento na base.")
+        
     st.markdown("---")
+    # Botão de Sair com estilo
     if st.button("🚪 Sair do Sistema"): 
-        st.session_state.authenticated = False; st.rerun()
+        st.session_state.authenticated = False
+        st.rerun()
 
 # -----------------------------------------------------------------------------
 # 4. PÁGINA: BASE DE CONHECIMENTO (INDEXAÇÃO COM METADADOS)
