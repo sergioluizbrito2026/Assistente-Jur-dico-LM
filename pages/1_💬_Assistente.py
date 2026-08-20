@@ -7,46 +7,68 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader, UnstructuredExcelLoader
 
-st.set_page_config(page_title="Assistente Jurídico Profissional", layout="wide")
+st.set_page_config(page_title="Assistente Jurídico Pro", layout="wide")
 
-# Estilo para diminuir e centralizar a barra de chat inferior
+# --- Estilização CSS para Botões e Barra de Chat ---
 st.markdown("""
     <style>
+    /* Estiliza a barra de input do chat */
     [data-testid="stChatInput"] {
         max-width: 750px;
         margin: 0 auto;
+        border-radius: 10px;
+    }
+    
+    /* Estiliza os botões de sugestão para usarem a cor primária do tema */
+    div.stButton > button {
+        border: 2px solid #00BFFF;
+        color: #00BFFF !important; /* Força a cor do texto para o azul brilhante */
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    div.stButton > button:hover {
+        background-color: #00BFFF;
+        color: #0E1117 !important; /* Cor do texto no hover inverte para o fundo escuro */
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Inicialização da API
+# --- Inicialização da API ---
 try:
     GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 except Exception:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
-    st.error("Erro: API Key não configurada.")
+    st.error("⚠️ Erro: API Key não configurada nos secrets.")
     st.stop()
 
 client = Groq(api_key=GROQ_API_KEY)
 
-# Inicializa Histórico de Chat
+# --- Inicializa Histórico de Chat ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Barra Lateral
+# --- Barra Lateral ---
 with st.sidebar:
     st.header("⚖️ Assistente Jurídico")
-    if st.button("Limpar Histórico"):
+    st.markdown("---")
+    st.info("Instruções: Faça upload do arquivo, aguarde processar e inicie o chat.")
+    if st.button("🗑️ Limpar Histórico de Chat"):
         st.session_state.messages = []
         st.rerun()
 
-# Upload de Documentos
-uploaded_files = st.file_uploader("Envie documentos (PDF, Word, TXT)", type=["pdf", "docx", "txt", "xlsx"], accept_multiple_files=True)
+# --- Interface Principal ---
+st.title("🤖 Bem-vindo ao seu Assistente Jurídico")
+st.markdown("Analise contratos e documentos com IA.")
 
+# --- Upload de Documentos ---
+uploaded_files = st.file_uploader("📄 Envie documentos (PDF, Word, TXT)", type=["pdf", "docx", "txt"], accept_multiple_files=True)
+
+# Processamento
 if uploaded_files and "vectorstore" not in st.session_state:
-    with st.spinner("Processando e indexando documentos..."):
+    with st.spinner("⚙️ Processando e indexando documentos..."):
         documents = []
         for uploaded_file in uploaded_files:
             with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
@@ -63,10 +85,13 @@ if uploaded_files and "vectorstore" not in st.session_state:
         splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
         st.session_state.vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-        st.success("Documentos processados com sucesso!")
+        st.success("✅ Documentos processados com sucesso! Você já pode perguntar.")
+        st.rerun() # Força o refresh para mostrar os botões de sugestão
 
-# Sugestões Rápidas de Perguntas (Aparece se houver documentos indexados)
-if "vectorstore" in st.session_state:
+# --- Botões de Sugestão Rápidos ---
+# Agora eles aparecem se houver arquivos enviados, mesmo que ainda não indexados
+if uploaded_files:
+    st.markdown("---")
     st.markdown("#### 💡 Sugestões de perguntas rápidas:")
     col1, col2, col3 = st.columns(3)
     
@@ -81,60 +106,44 @@ if "vectorstore" in st.session_state:
         if st.button("⚠️ Multas e Rescisão"):
             suggested_query = "Quais são as multas previstas e as regras de rescisão?"
             
+    # Se um botão for clicado, adiciona a pergunta ao histórico e força o rerun
     if suggested_query:
         st.session_state.messages.append({"role": "user", "content": suggested_query})
+        st.rerun()
 
-# Exibição do Histórico do Chat
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# --- Exibição do Histórico do Chat ---
+# Cria um container para o chat para separá-lo visualmente
+chat_container = st.container()
+with chat_container:
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-# Entrada de Texto do Chat
-user_query = st.chat_input("Digite sua dúvida...")
+# --- Entrada de Texto do Chat ---
+user_query = st.chat_input("Digite sua dúvida jurídica...")
 
-# Define qual query processar (se veio do input digitado ou de um botão de sugestão)
-query_to_process = user_query
-if not user_query and st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-    # Se a última mensagem foi adicionada por um botão de sugestão, pega ela para processar
-    # Evita duplicar se já foi processada
-    pass
-
+# Lógica de processamento do Chat
 if user_query:
+    # Adiciona input do usuário ao histórico e exibe
     st.session_state.messages.append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.markdown(user_query)
-    query_to_process = user_query
-
-# Processamento da Resposta da IA com o Histórico e Fontes
-if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-    # Verifica se a última mensagem do usuário ainda não teve resposta do assistente
-    # Para evitar loop, processamos o último item caso seja user
-    last_msg = st.session_state.messages[-1]["content"]
     
-    # Vamos garantir que não processamos duplicado verificando o histórico
-    pass
-
-# Lógica limpa de execução do chat
-if "vectorstore" in st.session_state:
-    # Se a última mensagem enviada foi do usuário, gera a resposta
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-        current_prompt = st.session_state.messages[-1]["content"]
-        
-        # Verifica se o assistente já respondeu a essa exata última mensagem para não duplicar
-        # Caso contrário, executa:
+    # Gera resposta da IA
+    if "vectorstore" in st.session_state:
         with st.chat_message("assistant"):
-            with st.spinner("Analisando documentos..."):
+            with st.spinner("🤔 Analisando documentos..."):
                 retriever = st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3})
-                docs = retriever.invoke(current_prompt)
+                docs = retriever.invoke(user_query)
                 
-                context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Contrato')}] {doc.page_content}" for doc in docs])
+                context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
                 
-                prompt_content = f"""Responda à pergunta com base no contexto abaixo. Inclua a citação da fonte quando relevante.
+                prompt_content = f"""Com base no contexto jurídico abaixo, responda à pergunta do usuário. Cite a fonte do documento.
                 
 Contexto:
 {context}
 
-Pergunta: {current_prompt}
+Pergunta: {user_query}
 """
                 
                 chat_completion = client.chat.completions.create(
@@ -145,4 +154,9 @@ Pergunta: {current_prompt}
                 
                 response = chat_completion.choices[0].message.content
                 st.markdown(response)
+                # Adiciona resposta da IA ao histórico
                 st.session_state.messages.append({"role": "assistant", "content": response})
+    else:
+        # Caso o usuário tente perguntar antes de fazer o upload
+        with st.chat_message("assistant"):
+            st.write("⚠️ Por favor, envie um documento primeiro para iniciar a análise.")
