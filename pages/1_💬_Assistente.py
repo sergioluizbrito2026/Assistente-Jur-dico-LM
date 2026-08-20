@@ -86,7 +86,7 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.title("⚖️ Assistente Jurídico SaaS")
+    st.title("⚖️ Assistente Jurídico LM AI"
     st.markdown("Faça login para acessar o painel restrito.")
     
     with st.form("login_form"):
