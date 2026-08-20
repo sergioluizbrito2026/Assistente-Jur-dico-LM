@@ -56,9 +56,9 @@ if user_input := st.chat_input("Digite a mensagem do cliente..."):
 
     # Processa a resposta com a IA (Groq)
     try:
-        llm = ChatGroq(
+       llm = ChatGroq(
             temperature=0.3,
-            model_name="llama-3.1-8b-instant",
+            model_name="openai/gpt-oss-20b",
             groq_api_key=GROQ_API_KEY
         )
         
