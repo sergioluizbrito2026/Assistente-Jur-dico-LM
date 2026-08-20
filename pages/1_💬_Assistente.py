@@ -12,24 +12,15 @@ st.set_page_config(page_title="Assistente Jurídico Pro", layout="wide")
 # --- Estilização CSS para Botões e Barra de Chat ---
 st.markdown("""
     <style>
-    /* Estiliza a barra de input do chat */
+    /* Faz a barra de chat se integrar melhor ao fundo azul petróleo */
     [data-testid="stChatInput"] {
-        max-width: 750px;
-        margin: 0 auto;
-        border-radius: 10px;
+        background-color: #13384A !important; 
+        border: 1px solid #00F2FE !important;
     }
     
-    /* Estiliza os botões de sugestão para usarem a cor primária do tema */
-    div.stButton > button {
-        border: 2px solid #00BFFF;
-        color: #00BFFF !important; /* Força a cor do texto para o azul brilhante */
-        border-radius: 8px;
-        transition: all 0.3s ease;
-    }
-    
-    div.stButton > button:hover {
-        background-color: #00BFFF;
-        color: #0E1117 !important; /* Cor do texto no hover inverte para o fundo escuro */
+    /* Garante que o texto dentro do chat input fique legível */
+    .stTextInput > div > div > input {
+        color: white !important;
     }
     </style>
 """, unsafe_allow_html=True)
