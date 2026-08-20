@@ -9,6 +9,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader, UnstructuredExcelLoader
+import streamlit_authenticator as stauth
 
 # Configuração da Página
 st.set_page_config(page_title="Assistente Jurídico SaaS", layout="wide")
