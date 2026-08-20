@@ -51,13 +51,18 @@ st.markdown("""
 st.markdown(
     """
     <style>
-    /* Fundo com gradiente mais escuro e fechado */
+    /* Fundo com gradiente escuro */
     .stApp {
         background: linear-gradient(135deg, #0f0717 0%, #170524 40%, #050505 100%);
         background-attachment: fixed;
     }
     
-    /* Barra lateral bem escura combinando */
+    /* Sombra elegante no título principal (h1) */
+    h1 {
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+    }
+    
+    /* Barra lateral escura */
     [data-testid="stSidebar"] {
         background-color: #08040c;
         border-right: 1px solid #170524;
