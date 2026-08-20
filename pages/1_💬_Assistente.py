@@ -1,15 +1,11 @@
 import os
 import tempfile
 import streamlit as st
-import streamlit_authenticator as stauth
-import yaml
-from yaml.loader import SafeLoader
 from groq import Groq
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader, UnstructuredExcelLoader
-import streamlit_authenticator as stauth
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 
 # Configuração da Página
 st.set_page_config(page_title="Assistente Jurídico SaaS", layout="wide")
@@ -42,41 +38,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 1. CONFIGURAÇÃO DE USUÁRIOS (SaaS Login) ---
-# Em produção, você pode puxar isso de um arquivo YAML ou st.secrets. 
-# Exemplo de credencial padrão para teste: user "sergio", senha "123456"
-# --- 1. CONFIGURAÇÃO DE USUÁRIOS (SaaS Login) ---
-import streamlit_authenticator as stauth
-
-# --- 1. CONFIGURAÇÃO DE USUÁRIOS (Com hash válido para a senha "123456") ---
-credentials = {
-    'usernames': {
-        'sergiolmendes2026@gmail.com': {  # Agora o seu e-mail é o username
-            'name': 'Dr. Sérgio Mendes',
-            'password': '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J2U3W0a4C', # Senha "123456"
-            'email': 'sergiolmendes2026@gmail.com'
-        }
-    }
-}
-
-authenticator = stauth.Authenticate(
-    credentials,
-    cookie_name='assistente_juridico_cookie',
-    key='sua_chave_secreta_super_segura',
-    cookie_expiry_days=30
-)
-
-# Renderiza a tela de login
-authenticator.login(location='main', key='login_unico')
-
-name = st.session_state.get('name')
-authentication_status = st.session_state.get('authentication_status')
-username = st.session_state.get('username')
-
+# --- 1. CONTROLE DE LOGIN (Apenas a versão limpa e funcional) ---
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
-# Se não estiver logado, mostra a tela de login
 if not st.session_state.authenticated:
     st.title("⚖️ Assistente Jurídico SaaS")
     st.markdown("Faça login para acessar o painel restrito.")
@@ -87,7 +52,6 @@ if not st.session_state.authenticated:
         submit_button = st.form_submit_button("Entrar")
         
         if submit_button:
-            # Suas credenciais oficiais
             if email_input == "sergiolmendes2026@gmail.com" and password_input == "123456":
                 st.session_state.authenticated = True
                 st.session_state.name = "Dr. Sérgio Mendes"
@@ -96,9 +60,11 @@ if not st.session_state.authenticated:
             else:
                 st.error("❌ E-mail ou senha incorretos.")
     
-    st.stop()
+    st.stop() # Interrompe a execução até o usuário fazer login
 
-# --- SE O USUÁRIO ESTIVER LOGADO, O RESTO DO APP SEGUE DAQUI ---
+# --- SE O USUÁRIO ESTIVER LOGADO, O SISTEMA SEGUE DAQUI ---
+
+name = st.session_state.name
 
 # Carregamento seguro da API Key da Groq
 try:
@@ -121,9 +87,12 @@ with st.sidebar:
     st.header("⚖️ Painel SaaS")
     st.markdown(f"👤 Olá, **{name}**")
     
-    # Botão de Logout oficial do authenticator
-    authenticator.logout('🚪 Sair do Sistema', 'sidebar', key='unique_logout')
-    
+    # Botão de Logout simples
+    if st.button("🚪 Sair do Sistema"):
+        st.session_state.authenticated = False
+        st.session_state.messages = []
+        st.rerun()
+        
     st.markdown("---")
     st.info("1. Envie seus documentos.\n2. Use as sugestões ou digite.\n3. Analise as respostas com fontes.")
     
