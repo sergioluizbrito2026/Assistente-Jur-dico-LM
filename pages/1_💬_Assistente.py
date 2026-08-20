@@ -12,37 +12,37 @@ st.set_page_config(page_title="Assistente Jurídico SaaS", layout="wide")
 
 st.markdown("""
     <style>
-    /* Garante a estilização correta dos botões do Streamlit */
+    /* Deixa a barra lateral mais escura e elegante */
+    [data-testid="stSidebar"] {
+        background-color: #061017 !important;
+        border-right: 1px solid #13384A !important;
+    }
+    
+    /* Estilo suave e confortável para os botões */
     div.stButton > button:not(:disabled) {
-        border: 2px solid #00F2FE !important;
-        color: #00F2FE !important;
+        border: 1px solid #2B5265 !important;
+        color: #E0F7FA !important;
         border-radius: 8px !important;
-        background-color: #0A2533 !important;
-        transition: all 0.3s ease !important;
-        font-weight: 600 !important;
+        background-color: #13384A !important;
+        transition: all 0.2s ease !important;
+        font-weight: 500 !important;
     }
     
-    /* Efeito Hover (ao passar o mouse) */
+    /* Efeito Hover suave (ao passar o mouse) */
     div.stButton > button:hover:not(:disabled) {
-        background-color: #00F2FE !important;
-        color: #0A2533 !important;
+        background-color: #1D4E64 !important;
         border-color: #00F2FE !important;
-        box-shadow: 0 4px 10px rgba(0, 242, 254, 0.3) !important;
+        color: #FFFFFF !important;
+        box-shadow: none !important;
     }
     
-    /* Efeito Active (ao clicar) */
-    div.stButton > button:active:not(:disabled) {
-        background-color: #E0F7FA !important;
-        transform: translateY(1px) !important;
-    }
-    
-    /* Estiliza a barra de input do chat */
+    /* Estilização da barra de input do chat mais discreta */
     [data-testid="stChatInput"] {
         max-width: 750px;
         margin: 0 auto;
         border-radius: 10px !important;
         background-color: #13384A !important;
-        border: 1px solid #00F2FE !important;
+        border: 1px solid #2B5265 !important;
     }
     </style>
 """, unsafe_allow_html=True)
