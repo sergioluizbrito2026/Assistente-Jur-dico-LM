@@ -147,7 +147,7 @@ with st.sidebar:
 # --- LÓGICA DA PÁGINA: BASE DE CONHECIMENTO ---
 if pagina_selecionada == "Base de Conhecimento":
     st.markdown("## 📚 Gestão da Base de Conhecimento Corporativa")
-    st.markdown("Faça o upload de minutas padrão, teses ou documentos institucionais do escritório para consulta permanente.")
+    st.markdown("Faça o upload de minutas padrão, teses ou documentos institucionais do escritório para consulta permanente da IA.")
     
     arquivos_base = st.file_uploader(
         "Envie documentos para a base da empresa (PDF, DOCX, TXT)", 
@@ -156,13 +156,43 @@ if pagina_selecionada == "Base de Conhecimento":
     )
     
     if arquivos_base:
-        if st.button("Salvar na Base da Empresa"):
-            with st.spinner("Salvando documentos na base corporativa..."):
+        if st.button("Processar e Indexar na Base da Empresa"):
+            with st.spinner("⚙️ Processando e indexando documentos na base corporativa..."):
+                documents = []
                 for arquivo in arquivos_base:
-                    caminho_arquivo = os.path.join(PASTA_BASE_CORPORATIVA, arquivo.name)
-                    with open(caminho_arquivo, "wb") as f:
+                    # Salva temporariamente para carregar no loader
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{arquivo.name}") as tmp_file:
+                        tmp_file.write(arquivo.getbuffer())
+                        tmp_path = tmp_file.name
+                    
+                    # Carrega conforme o tipo de arquivo
+                    if arquivo.name.endswith(".pdf"): loader = PyPDFLoader(tmp_path)
+                    elif arquivo.name.endswith(".docx"): loader = Docx2txtLoader(tmp_path)
+                    else: loader = TextLoader(tmp_path)
+                    
+                    documents.extend(loader.load())
+                    os.unlink(tmp_path)
+                    
+                    # Salva também o arquivo físico na pasta persistente
+                    caminho_fisico = os.path.join(PASTA_BASE_CORPORATIVA, arquivo.name)
+                    with open(caminho_fisico, "wb") as f:
                         f.write(arquivo.getbuffer())
-                st.success("✅ Documentos adicionados à base corporativa com sucesso!")
+
+                # Divide os documentos em pedaços (chunks)
+                splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
+                
+                # Usa os mesmos embeddings do HuggingFace
+                embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+                
+                # Salva em um banco ChromaDB dedicado à base corporativa (persistido em pasta local)
+                persist_directory = "chroma_db_corporativo"
+                vectorstore_corporativo = Chroma.from_documents(
+                    documents=splits, 
+                    embedding=embeddings, 
+                    persist_directory=persist_directory
+                )
+                
+                st.success("✅ Documentos indexados com sucesso na Base Corporativa da Empresa!")
 
     st.markdown("---")
     st.markdown("### 🗂️ Documentos Atuais na Base:")
