@@ -8,7 +8,7 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 
 # Configuração da Página
-st.set_page_config(page_title="Assistente Jurídico IA", layout="wide")
+st.set_page_config(page_title="Painel Jurídico", page_icon="⚖️", layout="wide")
 
 st.markdown("""
     <style>
