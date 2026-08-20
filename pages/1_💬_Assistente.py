@@ -54,7 +54,7 @@ if not st.session_state.authenticated:
         if submit_button:
             if email_input == "sergiolmendes2026@gmail.com" and password_input == "123456":
                 st.session_state.authenticated = True
-                st.session_state.name = "Dr. Sérgio Mendes"
+                st.session_state.name = "Dr. Sérgio Luiz"
                 st.success("Login realizado com sucesso! Carregando...")
                 st.rerun()
             else:
