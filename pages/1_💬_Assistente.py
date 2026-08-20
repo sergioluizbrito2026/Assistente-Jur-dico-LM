@@ -10,57 +10,107 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader, UnstructuredExcelLoader
 
-st.set_page_config(page_title="Assistente Jurídico Pro", layout="wide")
+# Configuração da Página
+st.set_page_config(page_title="Assistente Jurídico SaaS", layout="wide")
 
-# --- Estilização CSS para Botões e Barra de Chat ---
+# --- Estilização Visual (Azul Petróleo e Destaques Ciano) ---
 st.markdown("""
     <style>
-    /* Faz a barra de chat se integrar melhor ao fundo azul petróleo */
+    /* Estiliza a barra de input do chat */
     [data-testid="stChatInput"] {
-        background-color: #13384A !important; 
+        max-width: 750px;
+        margin: 0 auto;
+        border-radius: 10px;
+        background-color: #13384A !important;
         border: 1px solid #00F2FE !important;
     }
     
-    /* Garante que o texto dentro do chat input fique legível */
-    .stTextInput > div > div > input {
-        color: white !important;
+    /* Estiliza os botões de sugestão */
+    div.stButton > button {
+        border: 2px solid #00F2FE;
+        color: #00F2FE !important;
+        border-radius: 8px;
+        background-color: #0A2533;
+        transition: all 0.3s ease;
+    }
+    
+    div.stButton > button:hover {
+        background-color: #00F2FE;
+        color: #0A2533 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Inicialização da API ---
+# --- 1. CONFIGURAÇÃO DE USUÁRIOS (SaaS Login) ---
+# Em produção, você pode puxar isso de um arquivo YAML ou st.secrets. 
+# Exemplo de credencial padrão para teste: user "sergio", senha "123456"
+credentials = {
+    'usernames': {
+        'sergio': {
+            'name': 'Dr. Sérgio Mendes',
+            'password': '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', # Hash bcrypt para "123456"
+            'email': 'sergiolmendes2026@gmail.com'
+        }
+    }
+}
+
+authenticator = stauth.Authenticate(
+    credentials,
+    cookie_name='assistente_juridico_cookie',
+    key='sua_chave_secreta_super_segura',
+    cookie_expiry_days=30
+)
+
+# Renderiza a tela de login
+name, authentication_status, username = authenticator.login('Login do Sistema', 'main')
+
+if authentication_status == False:
+    st.error('❌ Usuário ou senha incorretos.')
+    st.stop()
+elif authentication_status == None:
+    st.warning('⚠️ Por favor, faça o login para acessar o Assistente Jurídico.')
+    st.stop()
+
+# --- SE O USUÁRIO ESTIVER LOGADO, O SISTEMA CARREGA ABAIXO ---
+
+# Carregamento seguro da API Key da Groq
 try:
     GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 except Exception:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
-    st.error("⚠️ Erro: API Key não configurada nos secrets.")
+    st.error("Erro de configuração: A chave da API Groq não foi encontrada nos segredos.")
     st.stop()
 
 client = Groq(api_key=GROQ_API_KEY)
 
-# --- Inicializa Histórico de Chat ---
+# Inicializa Histórico de Chat na Sessão
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- Barra Lateral ---
+# --- Barra Lateral (Perfil e Logout) ---
 with st.sidebar:
-    st.header("⚖️ Assistente Jurídico")
+    st.header("⚖️ Painel SaaS")
+    st.markdown(f"👤 Olá, **{name}**")
+    
+    # Botão de Logout oficial do authenticator
+    authenticator.logout('🚪 Sair do Sistema', 'sidebar', key='unique_logout')
+    
     st.markdown("---")
-    st.info("Instruções: Faça upload do arquivo, aguarde processar e inicie o chat.")
-    if st.button("🗑️ Limpar Histórico de Chat"):
+    st.info("1. Envie seus documentos.\n2. Use as sugestões ou digite.\n3. Analise as respostas com fontes.")
+    
+    if st.button("🗑️ Limpar Histórico"):
         st.session_state.messages = []
         st.rerun()
 
 # --- Interface Principal ---
-st.title("🤖 Bem-vindo ao seu Assistente Jurídico")
-st.markdown("Analise contratos e documentos com IA.")
+st.title("🤖 Assistente Jurídico Inteligente")
+st.markdown("Análise avançada de contratos e documentos com segurança de dados.")
 
-# --- Upload de Documentos ---
+# --- Upload de Arquivos ---
 uploaded_files = st.file_uploader("📄 Envie documentos (PDF, Word, TXT)", type=["pdf", "docx", "txt"], accept_multiple_files=True)
 
-# Processamento
 if uploaded_files and "vectorstore" not in st.session_state:
     with st.spinner("⚙️ Processando e indexando documentos..."):
         documents = []
@@ -79,11 +129,10 @@ if uploaded_files and "vectorstore" not in st.session_state:
         splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
         st.session_state.vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-        st.success("✅ Documentos processados com sucesso! Você já pode perguntar.")
-        st.rerun() # Força o refresh para mostrar os botões de sugestão
+        st.success("✅ Documentos indexados com sucesso!")
+        st.rerun()
 
-# --- Botões de Sugestão Rápidos ---
-# Agora eles aparecem se houver arquivos enviados, mesmo que ainda não indexados
+# --- Botões de Sugestão Rápida ---
 if uploaded_files:
     st.markdown("---")
     st.markdown("#### 💡 Sugestões de perguntas rápidas:")
@@ -100,30 +149,23 @@ if uploaded_files:
         if st.button("⚠️ Multas e Rescisão"):
             suggested_query = "Quais são as multas previstas e as regras de rescisão?"
             
-    # Se um botão for clicado, adiciona a pergunta ao histórico e força o rerun
     if suggested_query:
         st.session_state.messages.append({"role": "user", "content": suggested_query})
         st.rerun()
 
 # --- Exibição do Histórico do Chat ---
-# Cria um container para o chat para separá-lo visualmente
-chat_container = st.container()
-with chat_container:
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 # --- Entrada de Texto do Chat ---
 user_query = st.chat_input("Digite sua dúvida jurídica...")
 
-# Lógica de processamento do Chat
 if user_query:
-    # Adiciona input do usuário ao histórico e exibe
     st.session_state.messages.append({"role": "user", "content": user_query})
     with st.chat_message("user"):
         st.markdown(user_query)
     
-    # Gera resposta da IA
     if "vectorstore" in st.session_state:
         with st.chat_message("assistant"):
             with st.spinner("🤔 Analisando documentos..."):
@@ -132,7 +174,7 @@ if user_query:
                 
                 context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
                 
-                prompt_content = f"""Com base no contexto jurídico abaixo, responda à pergunta do usuário. Cite a fonte do documento.
+                prompt_content = f"""Com base no contexto jurídico abaixo, responda à pergunta do usuário de forma clara e técnica. Cite a fonte do documento.
                 
 Contexto:
 {context}
@@ -148,9 +190,7 @@ Pergunta: {user_query}
                 
                 response = chat_completion.choices[0].message.content
                 st.markdown(response)
-                # Adiciona resposta da IA ao histórico
                 st.session_state.messages.append({"role": "assistant", "content": response})
     else:
-        # Caso o usuário tente perguntar antes de fazer o upload
         with st.chat_message("assistant"):
-            st.write("⚠️ Por favor, envie um documento primeiro para iniciar a análise.")
+            st.write("⚠️ Por favor, faça o upload de um documento primeiro.")
