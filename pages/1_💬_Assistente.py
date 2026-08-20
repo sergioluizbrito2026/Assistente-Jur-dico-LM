@@ -57,9 +57,9 @@ st.markdown(
         background-attachment: fixed;
     }
     
-    /* Sombra elegante no título principal (h1) */
+    /* Sombra forte e bem definida no título principal do Streamlit */
     h1 {
-        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7);
+        text-shadow: 0px 4px 12px rgba(0, 0, 0, 0.9), 0px 1px 3px rgba(0, 0, 0, 0.8) !important;
     }
     
     /* Barra lateral escura */
