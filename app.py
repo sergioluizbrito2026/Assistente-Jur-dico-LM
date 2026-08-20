@@ -6,6 +6,22 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- CSS PARA RENOMEAR O "APP" DA SIDEBAR ---
+st.markdown("""
+    <style>
+    /* Oculta o rótulo padrão 'app' da barra lateral e o substitui por Painel Jurídico */
+    [data-testid="stSidebarNav"]::before {
+        content: "⚖️ Painel Jurídico";
+        display: block;
+        margin-left: 20px;
+        padding: 10px 0px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #FAFAFA;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("⚖️ Painel Jurídico AI")
 st.markdown("Bem-vindo ao seu painel de controle corporativo.")
 st.markdown("---")
