@@ -8,293 +8,225 @@ from langchain_community.vectorstores import Chroma
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 
 # Configuração da Página
-st.set_page_config(page_title="Assistente Jurídico IA", layout="wide")
+st.set_page_config(page_title="Assistente Jurídico IA - SaaS", layout="wide")
 
+# Estilo Visual CSS
 st.markdown("""
     <style>
-    /* Deixa a barra lateral mais escura e elegante */
-    [data-testid="stSidebar"] {
-        background-color: #061017 !important;
-        border-right: 1px solid #13384A !important;
-    }
-    
-    /* Estilo suave e confortável para os botões */
-    div.stButton > button:not(:disabled) {
-        border: 1px solid #2B5265 !important;
-        color: #E0F7FA !important;
-        border-radius: 8px !important;
-        background-color: #13384A !important;
-        transition: all 0.2s ease !important;
-        font-weight: 500 !important;
-    }
-    
-    /* Efeito Hover suave (ao passar o mouse) */
-    div.stButton > button:hover:not(:disabled) {
-        background-color: #1D4E64 !important;
-        border-color: #00F2FE !important;
-        color: #FFFFFF !important;
-        box-shadow: none !important;
-    }
-    
-    /* Estilização da barra de input do chat mais discreta */
-    [data-testid="stChatInput"] {
-        max-width: 750px;
-        margin: 0 auto;
-        border-radius: 10px !important;
-        background-color: #13384A !important;
-        border: 1px solid #2B5265 !important;
-    }
+    [data-testid="stSidebar"] { background-color: #061017 !important; border-right: 1px solid #13384A !important; }
+    .stApp { background: linear-gradient(135deg, #0f0717 0%, #170524 40%, #050505 100%); background-attachment: fixed; }
+    .stChatMessage { border-radius: 8px; margin-bottom: 10px; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- CSS para aplicar o fundo com gradiente ---
-st.markdown(
-    """
-    <style>
-    /* Fundo com gradiente escuro */
-    .stApp {
-        background: linear-gradient(135deg, #0f0717 0%, #170524 40%, #050505 100%);
-        background-attachment: fixed;
-    }
-    
-    /* Sombra forte e bem definida no título principal do Streamlit */
-    h1 {
-        text-shadow: 0px 4px 12px rgba(0, 0, 0, 0.9), 0px 1px 3px rgba(0, 0, 0, 0.8) !important;
-    }
-    
-    /* Barra lateral escura */
-    [data-testid="stSidebar"] {
-        background-color: #08040c;
-        border-right: 1px solid #170524;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# --- 1. CONTROLE DE LOGIN ---
+# -----------------------------------------------------------------------------
+# 1. AUTENTICAÇÃO E SESSÃO
+# -----------------------------------------------------------------------------
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
     st.title("⚖️ Assistente Jurídico LM AI")
-    st.markdown("Faça login para acessar o painel restrito.")
-    
     with st.form("login_form"):
-        email_input = st.text_input("E-mail de Acesso")
-        password_input = st.text_input("Senha", type="password")
-        submit_button = st.form_submit_button("Entrar")
-        
-        if submit_button:
-            if email_input == "sergiolmendes2026@gmail.com" and password_input == "123456":
+        email = st.text_input("E-mail")
+        senha = st.text_input("Senha", type="password")
+        if st.form_submit_button("Entrar"):
+            if email == "sergiolmendes2026@gmail.com" and senha == "123456":
                 st.session_state.authenticated = True
                 st.session_state.name = "Dr. Sérgio Luiz"
-                st.success("Login realizado com sucesso! Carregando...")
                 st.rerun()
             else:
                 st.error("❌ E-mail ou senha incorretos.")
-    
     st.stop()
 
-name = st.session_state.name
-
-# Carregamento seguro da API Key da Groq
-try:
-    GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-except Exception:
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-if not GROQ_API_KEY:
-    st.error("Erro de configuração: A chave da API Groq não foi encontrada nos segredos.")
+# Configuração da API do Groq
+GROQ_KEY = st.secrets.get("GROQ_API_KEY") or os.getenv("GROQ_API_KEY")
+if not GROQ_KEY:
+    st.error("🔑 Chave da API GROQ não configurada.")
     st.stop()
 
-client = Groq(api_key=GROQ_API_KEY)
+client = Groq(api_key=GROQ_KEY)
 
-# Inicializa Histórico de Chat na Sessão
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- Diretório da Base de Conhecimento Corporativa ---
 PASTA_BASE_CORPORATIVA = "base_conhecimento_corporativa"
 os.makedirs(PASTA_BASE_CORPORATIVA, exist_ok=True)
 
-# --- Barra Lateral (Navegação, Perfil e Logout) ---
+# -----------------------------------------------------------------------------
+# 2. CARREGAMENTO DO BANCO DE DADOS VETORIAL (CHROMADB)
+# -----------------------------------------------------------------------------
+@st.cache_resource
+def get_embeddings():
+    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+
+embeddings = get_embeddings()
+
+def carregar_vectorstore():
+    if os.path.exists("chroma_db_corporativo"):
+        return Chroma(persist_directory="chroma_db_corporativo", embedding_function=embeddings)
+    return None
+
+st.session_state.vectorstore = carregar_vectorstore()
+
+# -----------------------------------------------------------------------------
+# 3. BARRA LATERAL (NAVEGAÇÃO E METADADOS)
+# -----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("⚖️ **Painel Jurídico**")
-    st.markdown(f"👤 Olá, **{name}**")
-    st.markdown("---")
+    st.markdown(f"👤 Olá, **{st.session_state.name}**")
+    pagina = st.radio("Navegação", ["Assistente Jurídico", "Base de Conhecimento"])
     
-    # Seletor de páginas (Chat vs Base de Conhecimento)
-    pagina_selecionada = st.radio(
-        "Navegação", 
-        ["Assistente Jurídico", "Base de Conhecimento"]
-    )
+    # Listar arquivos presentes na pasta física
+    arquivos_existentes = [f for f in os.listdir(PASTA_BASE_CORPORATIVA) if not f.startswith(".")]
     
     st.markdown("---")
-    
-    if pagina_selecionada == "Assistente Jurídico":
-        st.info("1. Envie seus documentos.\n2. Use as sugestões ou digite.\n3. Analise as respostas com fontes.")
-        if st.button("🗑️ Limpar Histórico"):
-            st.session_state.messages = []
-            st.rerun()
-            
-    # Botão de Logout simples
+    st.markdown("📁 **Documentos na Base:**")
+    if arquivos_existentes:
+        for arq in arquivos_existentes:
+            st.caption(f"• {arq}")
+    else:
+        st.caption("Nenhum documento cadastrado.")
+
     if st.button("🚪 Sair do Sistema"):
         st.session_state.authenticated = False
-        st.session_state.messages = []
         st.rerun()
 
-# --- LÓGICA DA PÁGINA: BASE DE CONHECIMENTO ---
-if pagina_selecionada == "Base de Conhecimento":
+# -----------------------------------------------------------------------------
+# 4. PÁGINA: BASE DE CONHECIMENTO (INDEXAÇÃO COM METADADOS)
+# -----------------------------------------------------------------------------
+if pagina == "Base de Conhecimento":
     st.markdown("## 📚 Gestão da Base de Conhecimento Corporativa")
-    st.markdown("Faça o upload de minutas padrão, teses ou documentos institucionais do escritório para consulta permanente da IA.")
+    st.info("Envie minutas padrão, contratos ou teses para consulta permanente do assistente.")
     
     arquivos_base = st.file_uploader(
-        "Envie documentos para a base da empresa (PDF, DOCX, TXT)", 
+        "Envie documentos (PDF, DOCX, TXT)", 
         type=["pdf", "docx", "txt"], 
         accept_multiple_files=True
     )
     
-    if arquivos_base:
-        if st.button("Processar e Indexar na Base da Empresa"):
-            with st.spinner("⚙️ Processando e indexando documentos na base corporativa..."):
-                documents = []
-                for arquivo in arquivos_base:
-                    # Salva temporariamente para carregar no loader
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{arquivo.name}") as tmp_file:
-                        tmp_file.write(arquivo.getbuffer())
-                        tmp_path = tmp_file.name
-                    
-                    # Carrega conforme o tipo de arquivo
-                    if arquivo.name.endswith(".pdf"): loader = PyPDFLoader(tmp_path)
-                    elif arquivo.name.endswith(".docx"): loader = Docx2txtLoader(tmp_path)
-                    else: loader = TextLoader(tmp_path)
-                    
-                    documents.extend(loader.load())
-                    os.unlink(tmp_path)
-                    
-                    # Salva também o arquivo físico na pasta persistente
-                    caminho_fisico = os.path.join(PASTA_BASE_CORPORATIVA, arquivo.name)
-                    with open(caminho_fisico, "wb") as f:
-                        f.write(arquivo.getbuffer())
-
-                # Divide os documentos em pedaços (chunks)
-                splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
-                
-                # Usa os mesmos embeddings do HuggingFace
-                embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-                
-                # Salva em um banco ChromaDB dedicado à base corporativa (persistido em pasta local)
-                persist_directory = "chroma_db_corporativo"
-                vectorstore_corporativo = Chroma.from_documents(
-                    documents=splits, 
-                    embedding=embeddings, 
-                    persist_directory=persist_directory
-                )
-                
-                st.success("✅ Documentos indexados com sucesso na Base Corporativa da Empresa!")
-
-    st.markdown("---")
-    st.markdown("### 🗂️ Documentos Atuais na Base:")
-    
-    arquivos_existentes = os.listdir(PASTA_BASE_CORPORATIVA)
-    if arquivos_existentes:
-        for arq in arquivos_existentes:
-            st.text(f"📄 {arq}")
-    else:
-        st.info("Nenhum documento cadastrado na base corporativa ainda.")
-
-# --- LÓGICA DA PÁGINA: ASSISTENTE JURÍDICO (CHAT) ---
-elif pagina_selecionada == "Assistente Jurídico":
-    st.title("⚖️ Assistente Jurídico Inteligente")
-    st.markdown("Análise avançada de contratos e documentos com segurança de dados.")
-    
-    # --- Upload de Arquivos para o Chat ---
-    uploaded_files = st.file_uploader("📄 Envie documentos (PDF, Word, TXT)", type=["pdf", "docx", "txt"], accept_multiple_files=True)
-
-    if uploaded_files and "vectorstore" not in st.session_state:
-        with st.spinner("⚙️ Processando e indexando documentos..."):
+    if arquivos_base and st.button("Indexar na Base de Conhecimento"):
+        with st.spinner("Lendo e indexando documentos..."):
             documents = []
-            for uploaded_file in uploaded_files:
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    tmp_file.write(uploaded_file.getvalue())
-                    tmp_path = tmp_file.name
+            for arq in arquivos_base:
+                # Salvar arquivo físico
+                caminho_fisico = os.path.join(PASTA_BASE_CORPORATIVA, arq.name)
+                with open(caminho_fisico, "wb") as f:
+                    f.write(arq.getbuffer())
                 
-                if uploaded_file.name.endswith(".pdf"): loader = PyPDFLoader(tmp_path)
-                elif uploaded_file.name.endswith(".docx"): loader = Docx2txtLoader(tmp_path)
-                else: loader = TextLoader(tmp_path)
+                # Leitura temporária
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{arq.name}") as tmp:
+                    tmp.write(arq.getbuffer())
+                    tmp_path = tmp.name
+
+                if arq.name.endswith(".pdf"):
+                    loader = PyPDFLoader(tmp_path)
+                elif arq.name.endswith(".docx"):
+                    loader = Docx2txtLoader(tmp_path)
+                else:
+                    loader = TextLoader(tmp_path, encoding="utf-8")
+
+                docs_carregados = loader.load()
                 
-                documents.extend(loader.load())
+                # Adiciona o nome do arquivo nos metadados de cada página/trecho
+                for doc in docs_carregados:
+                    doc.metadata["source"] = arq.name
+                    doc.metadata["file_name"] = arq.name
+                
+                documents.extend(docs_carregados)
                 os.unlink(tmp_path)
 
-            splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
-            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-            st.session_state.vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
-            st.success("✅ Documentos indexados com sucesso!")
-            st.rerun()
+            if not documents:
+                st.warning("⚠️ Nenhum texto pôde ser extraído dos arquivos.")
+            else:
+                # Divisão em blocos de texto (chunks) com sobreposição
+                text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=150)
+                splits = text_splitter.split_documents(documents)
 
-    # --- Botões de Sugestão Rápida e Entrada de Chat Unificadas ---
-    active_query = None
+                # Persistência no ChromaDB
+                vectorstore = Chroma.from_documents(
+                    documents=splits,
+                    embedding=embeddings,
+                    persist_directory="chroma_db_corporativo"
+                )
+                st.session_state.vectorstore = vectorstore
+                st.success(f"✅ Sucesso! {len(splits)} blocos de texto indexados de {len(arquivos_base)} arquivo(s).")
+                st.rerun()
 
-    if uploaded_files:
-        st.markdown("---")
-        st.markdown("#### 💡 Sugestões de perguntas rápidas:")
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("📄 Resumir Contrato"):
-                active_query = "Faça um resumo geral dos principais pontos deste contrato."
-        with col2:
-            if st.button("💰 Valor Total"):
-                active_query = "Qual é o valor total do contrato e as condições de pagamento?"
-        with col3:
-            if st.button("⚠️ Multas e Rescisão"):
-                active_query = "Quais são as multas previstas e as regras de rescisão?"
+# -----------------------------------------------------------------------------
+# 5. PÁGINA: ASSISTENTE JURÍDICO (CHAT COM FILTRO POR DOCUMENTO)
+# -----------------------------------------------------------------------------
+elif pagina == "Assistente Jurídico":
+    st.title("⚖️ Assistente Jurídico Inteligente")
 
-    # Pega também o que o usuário digitar no chat input
-    chat_input_query = st.chat_input("Digite sua dúvida jurídica...")
-    if chat_input_query:
-        active_query = chat_input_query
+    # Filtro de Seleção de Documento no Chat
+    doc_selecionado = "Todos os Documentos"
+    if arquivos_existentes:
+        doc_selecionado = st.selectbox(
+            "🎯 Selecione o documento para consulta (ou consulte toda a base):",
+            ["Todos os Documentos"] + arquivos_existentes
+        )
 
-    # --- Exibição do Histórico do Chat ---
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+    # Exibição do histórico de mensagens
+    for msg in st.session_state.messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    # --- Execução da IA (Acionada por botão ou chat) ---
-    if active_query:
-        st.session_state.messages.append({"role": "user", "content": active_query})
+    query = st.chat_input("Digite sua dúvida sobre os documentos...")
+
+    if query:
+        st.session_state.messages.append({"role": "user", "content": query})
         with st.chat_message("user"):
-            st.markdown(active_query)
-        
-        if "vectorstore" in st.session_state and st.session_state.vectorstore is not None:
-            with st.chat_message("assistant"):
-                with st.spinner("🤔 Analisando documentos com IA..."):
-                    retriever = st.session_state.vectorstore.as_retriever(search_kwargs={"k": 3})
-                    docs = retriever.invoke(active_query)
-                    
-                    if not docs:
-                        st.warning("⚠️ Não encontrei essa informação nos documentos carregados.")
-                    else:
-                        context = "\n\n".join([f"[Fonte: {doc.metadata.get('source', 'Documento')}] {doc.page_content}" for doc in docs])
-                        
-                        prompt_content = f"""Você é um assistente jurídico restrito. Responda à pergunta do usuário **apenas** com base no contexto fornecido abaixo. Se a resposta não estiver no contexto, informe que o documento não contém essa informação. Não utilize conhecimento externo.
-                        
-Contexto:
-{context}
+            st.markdown(query)
 
-Pergunta: {active_query}
+        with st.chat_message("assistant"):
+            if st.session_state.vectorstore is None:
+                st.warning("⚠️ A base de conhecimento está vazia. Cadastre documentos na aba 'Base de Conhecimento'.")
+            else:
+                with st.spinner("Consultando a base de conhecimento..."):
+                    # Aplicar Filtro de Busca por Metadados
+                    search_kwargs = {"k": 6}
+                    if doc_selecionado != "Todos os Documentos":
+                        search_kwargs["filter"] = {"source": doc_selecionado}
+
+                    retriever = st.session_state.vectorstore.as_retriever(search_kwargs=search_kwargs)
+                    docs_encontrados = retriever.invoke(query)
+
+                    if not docs_encontrados:
+                        resposta = f"Não foi possível localizar trechos relevantes no documento `{doc_selecionado}` para responder à sua dúvida."
+                        st.markdown(resposta)
+                    else:
+                        # Montar contexto com indicação explícita da fonte
+                        contexto = "\n\n---\n\n".join([
+                            f"[Fonte: {d.metadata.get('source', 'Desconhecido')}]\n{d.page_content}"
+                            for d in docs_encontrados
+                        ])
+
+                        prompt = f"""Você é um assistente jurídico especializado em análise contratual e documental.
+Responda à dúvida do usuário com base EXCLUSIVAMENTE nos trechos fornecidos abaixo.
+
+Se a informação solicitada (como a qualificação das partes, contratante, contratada, objeto, prazos ou foro) estiver presente no texto, extraia-a e apresente de forma objetiva.
+Se os trechos não contiverem a resposta, informe claramente que o trecho recuperado não possui essa informação específica.
+
+TRECHOS DO DOCUMENTO:
+{contexto}
+
+PERGUNTA DO USUÁRIO:
+{query}
 """
-                        
-                        chat_completion = client.chat.completions.create(
-                            messages=[{"role": "user", "content": prompt_content}],
+
+                        res = client.chat.completions.create(
+                            messages=[{"role": "user", "content": prompt}],
                             model="openai/gpt-oss-120b",
                             temperature=0.1
                         )
-                        
-                        response = chat_completion.choices[0].message.content
-                        st.markdown(response)
-                        st.session_state.messages.append({"role": "assistant", "content": response})
-        else:
-            with st.chat_message("assistant"):
-                st.error("⚠️ Atenção: Por favor, faça o upload de um documento (PDF, Word ou TXT) antes de realizar consultas.")
+                        resposta = res.choices[0].message.content
+                        st.markdown(resposta)
+
+                        # Exibir Painel Expansível de Fontes Consultadas
+                        with st.expander("🔍 Ver trechos originais consultados no documento"):
+                            for i, d in enumerate(docs_encontrados, 1):
+                                fonte = d.metadata.get("source", "N/A")
+                                st.markdown(f"**Bloco {i} (Arquivo: {fonte}):**")
+                                st.caption(d.page_content)
+
+                    st.session_state.messages.append({"role": "assistant", "content": resposta})
