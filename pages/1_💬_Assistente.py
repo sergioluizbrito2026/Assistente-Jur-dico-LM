@@ -73,32 +73,29 @@ name = st.session_state.get('name')
 authentication_status = st.session_state.get('authentication_status')
 username = st.session_state.get('username')
 
-if authentication_status == False:
-    st.error('❌ E-mail ou senha incorretos.')
-    st.stop()
-elif authentication_status == None:
-    st.warning('⚠️ Por favor, faça o login para acessar o Assistente Jurídico.')
-    st.stop()
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
 
-authenticator = stauth.Authenticate(
-    credentials,
-    cookie_name='assistente_juridico_cookie',
-    key='sua_chave_secreta_super_segura',
-    cookie_expiry_days=30
-)
-
-# Renderiza a tela de login na nova sintaxe
-authenticator.login(location='main', key='login_unico')
-
-name = st.session_state.get('name')
-authentication_status = st.session_state.get('authentication_status')
-username = st.session_state.get('username')
-
-if authentication_status == False:
-    st.error('❌ Usuário ou senha incorretos.')
-    st.stop()
-elif authentication_status == None:
-    st.warning('⚠️ Por favor, faça o login para acessar o Assistente Jurídico.')
+# Se não estiver logado, mostra a tela de login
+if not st.session_state.authenticated:
+    st.title("⚖️ Assistente Jurídico SaaS")
+    st.markdown("Faça login para acessar o painel restrito.")
+    
+    with st.form("login_form"):
+        email_input = st.text_input("E-mail de Acesso")
+        password_input = st.text_input("Senha", type="password")
+        submit_button = st.form_submit_button("Entrar")
+        
+        if submit_button:
+            # Suas credenciais oficiais
+            if email_input == "sergiolmendes2026@gmail.com" and password_input == "123456":
+                st.session_state.authenticated = True
+                st.session_state.name = "Dr. Sérgio Mendes"
+                st.success("Login realizado com sucesso! Carregando...")
+                st.rerun()
+            else:
+                st.error("❌ E-mail ou senha incorretos.")
+    
     st.stop()
 
 # --- SE O USUÁRIO ESTIVER LOGADO, O RESTO DO APP SEGUE DAQUI ---
