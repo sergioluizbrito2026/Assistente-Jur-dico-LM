@@ -6,7 +6,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Define as páginas do sistema de forma limpa
 dashboard_page = st.Page(
     "dashboard.py",
     title="Painel Principal",
@@ -16,15 +15,21 @@ dashboard_page = st.Page(
 
 assistente_page = st.Page(
     "pages/1_💬_Assistente.py",
-    title="Assistente",
+    title="Assistente RAG",
     icon="💬"
 )
 
-# Cria o menu lateral com o nome correto
+bot_page = st.Page(
+    "pages/2_🤖_Bot_Triagem.py",
+    title="Bot de Triagem",
+    icon="🤖"
+)
+
 pg = st.navigation({
     "⚖️ Painel Jurídico": [
         dashboard_page,
-        assistente_page
+        assistente_page,
+        bot_page
     ]
 })
 
