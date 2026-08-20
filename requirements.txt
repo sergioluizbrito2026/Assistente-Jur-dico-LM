@@ -4,6 +4,7 @@ PyYAML
 groq
 langchain
 langchain-community
+langchain-groq
 langchain-text-splitters
 langchain-huggingface
 chromadb
