@@ -44,11 +44,12 @@ st.markdown("""
 # --- 1. CONFIGURAÇÃO DE USUÁRIOS (SaaS Login) ---
 # Em produção, você pode puxar isso de um arquivo YAML ou st.secrets. 
 # Exemplo de credencial padrão para teste: user "sergio", senha "123456"
+# --- 1. CONFIGURAÇÃO DE USUÁRIOS (SaaS Login) ---
 credentials = {
     'usernames': {
         'sergio': {
             'name': 'Dr. Sérgio Mendes',
-            'password': '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', # Hash bcrypt para "123456"
+            'password': '$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW', # Hash para "123456"
             'email': 'sergiolmendes2026@gmail.com'
         }
     }
@@ -61,8 +62,12 @@ authenticator = stauth.Authenticate(
     cookie_expiry_days=30
 )
 
-# Renderiza a tela de login
-name, authentication_status, username = authenticator.login('Login', location='main')
+# Renderiza a tela de login na nova sintaxe
+authenticator.login(location='main', key='login_unico')
+
+name = st.session_state.get('name')
+authentication_status = st.session_state.get('authentication_status')
+username = st.session_state.get('username')
 
 if authentication_status == False:
     st.error('❌ Usuário ou senha incorretos.')
@@ -71,7 +76,7 @@ elif authentication_status == None:
     st.warning('⚠️ Por favor, faça o login para acessar o Assistente Jurídico.')
     st.stop()
 
-# --- SE O USUÁRIO ESTIVER LOGADO, O SISTEMA CARREGA ABAIXO ---
+# --- SE O USUÁRIO ESTIVER LOGADO, O RESTO DO APP SEGUE DAQUI ---
 
 # Carregamento seguro da API Key da Groq
 try:
