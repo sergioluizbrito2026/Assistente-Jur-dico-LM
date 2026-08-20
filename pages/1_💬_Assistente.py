@@ -85,8 +85,9 @@ st.session_state.vectorstore = carregar_vectorstore()
 # -----------------------------------------------------------------------------
 # 3. BARRA LATERAL (NAVEGAÇÃO E METADADOS)
 # -----------------------------------------------------------------------------
+# --- BARRA LATERAL (VERSÃO LIMPA E SEM DUPLICAÇÕES) ---
 with st.sidebar:
-    st.markdown("### app")
+    # Apenas o essencial, sem duplicar o "app"
     st.markdown("💬 **Assistente**")
     st.markdown("---")
     st.markdown("⚖️ **Painel Jurídico**")
@@ -94,6 +95,7 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### Navegação")
+    # Este é o rádio que controla a página
     pagina = st.radio("Selecione a página:", ["Assistente Jurídico", "Base de Conhecimento"], label_visibility="collapsed")
     
     st.markdown("---")
@@ -106,7 +108,6 @@ with st.sidebar:
         st.caption("Nenhum documento na base.")
         
     st.markdown("---")
-    # Botão de Sair com estilo
     if st.button("🚪 Sair do Sistema"): 
         st.session_state.authenticated = False
         st.rerun()
