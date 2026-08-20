@@ -144,41 +144,45 @@ with st.sidebar:
         st.session_state.messages = []
         st.rerun()
 
-# --- PÁGINA: BASE DE CONHECIMENTO ---
-if pagina == "Base de Conhecimento":
-    st.markdown("## 📚 Gestão da Base Corporativa")
-    arquivos_base = st.file_uploader("Envie documentos", type=["pdf", "docx", "txt"], accept_multiple_files=True)
+# --- LÓGICA DA PÁGINA: BASE DE CONHECIMENTO ---
+if pagina_selecionada == "Base de Conhecimento":
+    st.markdown("## 📚 Gestão da Base de Conhecimento Corporativa")
+    st.markdown("Faça o upload de minutas padrão, teses ou documentos institucionais do escritório para consulta permanente da IA.")
     
-    if arquivos_base and st.button("Indexar na Base"):
-        with st.spinner("Processando..."):
-            documents = []
-            for arq in arquivos_base:
-                # Salva arquivo físico
-                caminho_fisico = os.path.join(PASTA_BASE_CORPORATIVA, arq.name)
-                with open(caminho_fisico, "wb") as f: f.write(arq.getbuffer())
-                
-                # Carrega o documento
-                with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{arq.name}") as tmp:
-                    tmp.write(arq.getbuffer()); tmp_path = tmp.name
-                
-                loader = PyPDFLoader(tmp_path) if arq.name.endswith(".pdf") else (Docx2txtLoader(tmp_path) if arq.name.endswith(".docx") else TextLoader(tmp_path))
-                docs = loader.load()
-                documents.extend(docs)
-                os.unlink(tmp_path)
-                st.write(f"📄 Documento '{arq.name}' carregado com {len(docs)} páginas/seções.")
+    arquivos_base = st.file_uploader(
+        "Envie documentos para a base da empresa (PDF, DOCX, TXT)", 
+        type=["pdf", "docx", "txt"], 
+        accept_multiple_files=True
+    )
+    
+    if arquivos_base:
+        if st.button("Processar e Indexar na Base da Empresa"):
+            with st.spinner("⚙️ Processando e indexando documentos na base corporativa..."):
+                documents = []
+                for arquivo in arquivos_base:
+                    # Salva temporariamente para carregar no loader
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=f"_{arquivo.name}") as tmp_file:
+                        tmp_file.write(arquivo.getbuffer())
+                        tmp_path = tmp_file.name
+                    
+                    # Carrega conforme o tipo de arquivo
+                    if arquivo.name.endswith(".pdf"): loader = PyPDFLoader(tmp_path)
+                    elif arquivo.name.endswith(".docx"): loader = Docx2txtLoader(tmp_path)
+                    else: loader = TextLoader(tmp_path)
+                    
+                    documents.extend(loader.load())
+                    os.unlink(tmp_path)
+                    
+                    # Salva também o arquivo físico na pasta persistente
+                    caminho_fisico = os.path.join(PASTA_BASE_CORPORATIVA, arquivo.name)
+                    with open(caminho_fisico, "wb") as f:
+                        f.write(arquivo.getbuffer())
 
-            # Indexação
-            splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
-            embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-            
-            # CRIAÇÃO DO BANCO PERSISTENTE
-            st.session_state.vectorstore = Chroma.from_documents(
-                documents=splits, 
-                embedding=embeddings, 
-                persist_directory="chroma_db_corporativo"
-            )
-            
-            st.success(f"✅ Sucesso! {len(splits)} fragmentos de texto indexados.")
+                # Divide os documentos em pedaços (chunks)
+                splits = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200).split_documents(documents)
+                
+                # Usa os mesmos embeddings do HuggingFace
+                embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
                 
                 # Salva em um banco ChromaDB dedicado à base corporativa (persistido em pasta local)
                 persist_directory = "chroma_db_corporativo"
