@@ -127,7 +127,7 @@ if "messages" not in st.session_state:
 
 # --- Barra Lateral (Perfil e Logout) ---
 with st.sidebar:
-    st.header("⚖️ Painel SaaS")
+    st.sidebar.markdown("⚖️ Painel Jurídico")
     st.markdown(f"👤 Olá, **{name}**")
     
     # Botão de Logout simples
