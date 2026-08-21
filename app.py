@@ -132,16 +132,34 @@ if not st.session_state.autenticado:
                 enviar_link = st.form_submit_button("Enviar link de recuperação", use_container_width=True)
                 
                 if enviar_link:
-                    if email_rec:
-                        st.success("Link de recuperação enviado com sucesso para o seu e-mail!")
-                    else:
+                    if not email_rec:
                         st.warning("Por favor, digite seu e-mail.")
+                    else:
+                        import smtplib
+                        from email.message import EmailMessage
+                        
+                        # Configurações do e-mail
+                        msg = EmailMessage()
+                        msg.set_content(f"Olá, recebemos uma solicitação de redefinição de senha para o e-mail: {email_rec}.\n\nClique no link abaixo para criar uma nova senha:\n\n[Link de Redefinição Seguro]")
+                        msg['Subject'] = 'Recuperação de Senha - Assistente Jurídico LM AI'
+                        msg['From'] = "seu-email@gmail.com"  # <--- COLOQUE SEU E-MAIL AQUI
+                        msg['To'] = email_rec
+
+                        try:
+                            # Conexão com o servidor do Gmail
+                            # Nota: Use a 'Senha de App' gerada no Google, não sua senha comum
+                            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                            server.login("seu-email@gmail.com", "sua-senha-de-app-aqui") # <--- COLOQUE A SENHA DE APP AQUI
+                            server.send_message(msg)
+                            server.quit()
+                            st.success("✅ E-mail enviado com sucesso! Verifique sua caixa de entrada.")
+                        except Exception as e:
+                            st.error(f"Erro ao enviar o e-mail: {e}")
+                            st.info("Dica: Verifique se sua 'Senha de App' está correta.")
 
             if st.button("⬅️ Voltar para o Login"):
                 st.session_state.tela_auth = "login"
                 st.rerun()
-    
-    st.stop()
 
 # ==========================================
 # 2. SISTEMA INTERNO (APÓS O LOGIN)
