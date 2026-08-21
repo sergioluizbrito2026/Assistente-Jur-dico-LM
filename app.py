@@ -104,20 +104,88 @@ with st.sidebar:
     st.markdown("<span style='color: #10B981; font-size: 14px;'>● Online</span>", unsafe_allow_html=True)
     st.markdown("---")
     
+    st.markdown("**PRINCIPAL**")
     menu_opcao = st.radio(
-        "Navegação do Sistema",
-        ["💬 Assistente RAG", "🤖 Assistente de Triagem"]
+        "Navegação Principal",
+        ["🔵 Dashboard", "💬 Assistente Jurídico RAG", "🤖 Triagem Jurídica"],
+        label_visibility="collapsed"
     )
     
     st.markdown("---")
-    if st.button("🚪 Sair do Sistema", use_container_width=True):
+    st.markdown("**CONTA**")
+    opcao_conta = st.radio(
+        "Navegação Conta",
+        ["👤 Meu Perfil", "⚙️ Configurações"],
+        label_visibility="collapsed"
+    )
+    
+    st.markdown("---")
+    st.markdown("**SISTEMA**")
+    opcao_sistema = st.radio(
+        "Navegação Sistema",
+        ["🔔 Notificações", "🚪 Sair do Sistema"],
+        label_visibility="collapsed"
+    )
+    
+    if opcao_conta == "👤 Meu Perfil":
+        st.session_state.pagina_ativa_extra = "perfil"
+    elif opcao_conta == "⚙️ Configurações":
+        st.session_state.pagina_ativa_extra = "config"
+        
+    if opcao_sistema == "🔔 Notificações":
+        st.session_state.pagina_ativa_extra = "notificacoes"
+    elif opcao_sistema == "🚪 Sair do Sistema":
         st.session_state.autenticado = False
         st.rerun()
 
+pagina_atual = st.session_state.get("pagina_ativa_extra", "principal")
+
+if menu_opcao in ["🔵 Dashboard", "💬 Assistente Jurídico RAG", "🤖 Triagem Jurídica"]:
+    st.session_state.pagina_ativa_extra = "principal"
+    pagina_atual = "principal"
+
+# TELAS EXTRAS DO MENU CONTA/SISTEMA
+if pagina_atual == "perfil":
+    st.title("👤 Meu Perfil")
+    st.markdown("Gerencie suas informações profissionais.")
+    st.markdown("---")
+    st.text_input("Nome Completo", value="Dr. Sérgio Luiz")
+    st.text_input("E-mail", value="sergio.luiz@escritorio.com")
+elif pagina_atual == "config":
+    st.title("⚙️ Configurações")
+    st.markdown("Ajustes gerais do sistema.")
+    st.markdown("---")
+    st.toggle("Modo Escuro", value=True)
+elif pagina_atual == "notificacoes":
+    st.title("🔔 Notificações")
+    st.markdown("Avisos recentes.")
+    st.markdown("---")
+    st.info("Nenhuma nova notificação pendente.")
+
+# ==========================================
+# DASHBOARD
+# ==========================================
+elif pagina_atual == "principal" and menu_opcao == "🔵 Dashboard":
+    st.title("🔵 Dashboard Corporativo")
+    st.markdown("Visão geral e atalhos do escritório.")
+    st.markdown("---")
+    st.info("💡 Utilize o menu lateral para acessar o **Assistente Jurídico RAG** ou a **Triagem Jurídica**.")
+
+# ==========================================
 # MÓDULO 1: ASSISTENTE RAG
-if menu_opcao == "💬 Assistente RAG":
+# ==========================================
+elif pagina_atual == "principal" and menu_opcao == "💬 Assistente Jurídico RAG":
     st.title("💬 Assistente Jurídico Inteligente (RAG)")
     st.markdown("Análise avançada de contratos, petições e documentos com segurança de dados.")
+    
+    col_t1, col_t2 = st.columns([6, 1])
+    with col_t2:
+        if st.button("🗑️ Limpar Histórico", use_container_width=True):
+            st.session_state.historico_rag = [
+                {"role": "assistant", "content": "Olá! Envie seu documento acima e faça perguntas específicas sobre o conteúdo dele."}
+            ]
+            st.rerun()
+            
     st.markdown("---")
 
     GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "")
@@ -189,14 +257,28 @@ if menu_opcao == "💬 Assistente RAG":
             except Exception as e:
                 st.error(f"Erro ao processar a análise com a IA: {e}")
 
+# ==========================================
 # MÓDULO 2: ASSISTENTE DE TRIAGEM
-elif menu_opcao == "🤖 Assistente de Triagem":
-    st.title("🤖 Assistente de Triagem Jurídica")
+# ==========================================
+elif pagina_atual == "principal" and menu_opcao == "🤖 Triagem Jurídica":
+    st.title("🤖 Triagem Jurídica")
     st.markdown("Atendimento inicial automatizado para identificar a demanda, coletar informações e encaminhar o cliente ao setor responsável.")
     
+    col_t1, col_t2 = st.columns([6, 1])
+    with col_t2:
+        if st.button("🗑️ Limpar Histórico", use_container_width=True):
+            st.session_state.mensagens_bot = [
+                SystemMessage(content="Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo atendimento inicial e triagem jurídica."),
+                HumanMessage(content="Olá! Gostaria de tirar uma dúvida jurídica.")
+            ]
+            st.session_state.historico_chat = [
+                {"role": "assistant", "content": "Olá! Seja bem-vindo(a) ao nosso atendimento jurídico ⚖️. Como posso te ajudar hoje?"}
+            ]
+            st.rerun()
+
     with st.expander("ℹ️ Sobre o Fluxo de Atendimento e Conformidade"):
         st.markdown("""
-        * **Arquitetura do Fluxo:** `Cliente` ➔ `WhatsApp` ➔ **Assistente de Triagem** ➔ `Identificação da Demanda` ➔ `Perguntas de Triagem` ➔ `Classificação` ➔ `Encaminhamento ao Advogado`.
+        * **Arquitetura do Fluxo:** `Cliente` ➔ `WhatsApp` ➔ **Triagem Jurídica** ➔ `Identificação da Demanda` ➔ `Perguntas de Triagem` ➔ `Classificação` ➔ `Encaminhamento ao Advogado`.
         * **Aviso Legal:** *Este assistente realiza exclusivamente triagem automatizada e apoio informacional preliminar. A análise técnica, aconselhamento e parecer jurídico definitivo são de responsabilidade exclusiva do advogado titular.*
         """)
     
