@@ -106,7 +106,7 @@ with st.sidebar:
     
     menu_opcao = st.radio(
         "Navegação do Sistema",
-        ["💬 Assistente RAG", "🤖 Assistente de Triagem"]
+        ["💬 Assistente RAG", "🤖  Assistente de Triagem"]
     )
     
     st.markdown("---")
