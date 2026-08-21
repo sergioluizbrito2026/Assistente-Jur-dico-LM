@@ -3,9 +3,8 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_groq import ChatGroq
 import pypdf
 import pandas as pd
-import plotly.express as px
 
-# Configuração da página (deve ser a primeira linha do Streamlit)
+# Configuração da página
 st.set_page_config(
     page_title="Assistente Jurídico LM",
     page_icon="⚖️",
@@ -13,14 +12,44 @@ st.set_page_config(
 )
 
 # ==========================================
-# CSS PERSONALIZADO (ALARGAR A SIDEBAR)
+# CSS PERSONALIZADO (SIDEBAR + GRÁFICO CUSTOMIZADO)
 # ==========================================
 st.markdown("""
     <style>
-        /* Aumenta a largura da barra lateral para 300px (padrão é menor) */
+        /* Aumenta a largura da barra lateral para 300px */
         [data-testid="stSidebar"] {
             min-width: 300px;
             max-width: 300px;
+        }
+        
+        /* Estilização moderna para o mini gráfico de barras corporativo */
+        .card-demanda {
+            background-color: #111B27;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .barra-container {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            height: 28px;
+            width: 100%;
+            margin: 8px 0 16px 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .barra-preenchida {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding-left: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            transition: width 0.5s ease-in-out;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -131,37 +160,34 @@ elif pagina_selecionada == "🔵 Dashboard":
     
     st.subheader("📈 Distribuição de Demandas por Área")
     
-    # Criando dados com cores customizadas para cada barra usando Plotly
-    df_demandas = pd.DataFrame({
-        'Área': ['Consumidor', 'Cível', 'Trabalhista'],
-        'Casos': [6, 8, 10],
-        'Cor': ['#3B82F6', '#10B981', '#8B5CF6']
-    })
-    
-    fig = px.bar(
-        df_demandas, 
-        x='Área', 
-        y='Casos', 
-        color='Área',
-        color_discrete_map={
-            'Consumidor': '#3B82F6', 
-            'Cível': '#10B981', 
-            'Trabalhista': '#8B5CF6'
-        },
-        text='Casos'
-    )
-    
-    fig.update_traces(textposition='outside')
-    fig.update_layout(
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font_color='white',
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
-        showlegend=False
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+    # Gráfico customizado elegante com cores separadas para cada barra
+    st.markdown("""
+        <div class="card-demanda">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-weight: 500; color: #E2E8F0;">Trabalhista</span>
+                <span style="color: #8B5CF6; font-weight: bold;">10 casos</span>
+            </div>
+            <div class="barra-container">
+                <div class="barra-preenchida" style="width: 100%; background: linear-gradient(90deg, #7C3AED, #8B5CF6);">10</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-weight: 500; color: #E2E8F0;">Cível</span>
+                <span style="color: #10B981; font-weight: bold;">8 casos</span>
+            </div>
+            <div class="barra-container">
+                <div class="barra-preenchida" style="width: 80%; background: linear-gradient(90deg, #059669, #10B981);">8</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="font-weight: 500; color: #E2E8F0;">Consumidor</span>
+                <span style="color: #3B82F6; font-weight: bold;">6 casos</span>
+            </div>
+            <div class="barra-container">
+                <div class="barra-preenchida" style="width: 60%; background: linear-gradient(90deg, #2563EB, #3B82F6);">6</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
 # MÓDULO: ASSISTENTE JURÍDICO RAG
 elif pagina_selecionada == "💬 Assistente Jurídico RAG":
@@ -229,8 +255,7 @@ elif pagina_selecionada == "💬 Assistente Jurídico RAG":
 
                 prompt_rag_sistema = SystemMessage(content=(
                     "Você é um assistente jurídico especialista em análise de contratos e documentos. "
-                    "Responda estritamente com base no texto do documento fornecido abaixo. "
-                    "Se a resposta não estiver no documento, informe claramente.\n\n"
+                    "Responda estritamente com base no texto do documento fornecido abaixo.\n\n"
                     f"--- DOCUMENTO(S) ---\n{texto_documentos[:15000]}"
                 ))
                 
@@ -265,8 +290,8 @@ elif pagina_selecionada == "🤖 Triagem Jurídica":
 
     with st.expander("ℹ️ Sobre o Fluxo de Atendimento e Conformidade"):
         st.markdown("""
-        * **Arquitetura do Fluxo:** `Cliente` ➔ `WhatsApp` ➔ **Triagem Jurídica** ➔ `Identificação da Demanda` ➔ `Perguntas de Triagem` ➔ `Classificação` ➔ `Encaminhamento ao Advogado`.
-        * **Aviso Legal:** *Este assistente realiza exclusivamente triagem automatizada e apoio informacional preliminar. A análise técnica, aconselhamento e parecer jurídico definitivo são de responsabilidade exclusiva do advogado titular.*
+        * **Arquitetura do Fluxo:** `Cliente` ➔ `WhatsApp` ➔ **Triagem Jurídica** ➔ `Identificação da Demanda` ➔ `Encaminhamento ao Advogado`.
+        * **Aviso Legal:** *Este assistente realiza exclusivamente triagem automatizada e apoio informacional preliminar.*
         """)
     
     st.markdown("---")
@@ -419,9 +444,7 @@ O assistente realiza triagem e apoio informacional preliminar. Não substitui co
 
 ==================================================
 14. COMPORTAMENTO GERAL
-==================================================
-
-Priorize segurança, precisão, clareza e encaminhamento adequado. Seu objetivo é realizar uma TRIAGEM JURÍDICA INICIAL DE QUALIDADE."""
+=================================================="""
 
     if "mensagens_bot" not in st.session_state:
         st.session_state.mensagens_bot = [
