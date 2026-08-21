@@ -1,6 +1,8 @@
 import streamlit as st
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, SystemMessage
+import uuid
+import streamlit as st
 
 st.set_page_config(
     page_title="Assistente Jurídico LM AI",
