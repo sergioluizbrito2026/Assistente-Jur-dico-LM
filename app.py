@@ -147,6 +147,15 @@ st.markdown("""
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
+if "total_triagens" not in st.session_state:
+    st.session_state.total_triagens = 0
+
+if "total_documentos" not in st.session_state:
+    st.session_state.total_documentos = 0
+
+if "total_urgencias" not in st.session_state:
+    st.session_state.total_urgencias = 0
+
 if "pagina_atual" not in st.session_state:
     st.session_state.pagina_atual = "Dashboard"
 
