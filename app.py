@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# CSS PERSONALIZADO (SIDEBAR)
+# CSS PERSONALIZADO (SIDEBAR + COMPONENTES SaaS)
 # ==========================================
 st.markdown("""
     <style>
@@ -20,6 +20,31 @@ st.markdown("""
         [data-testid="stSidebar"] {
             min-width: 300px;
             max-width: 300px;
+        }
+        
+        /* Estilização moderna para cards estilo SaaS */
+        .saas-card {
+            background-color: #0E1117;
+            border: 1px solid #262730;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .urgente-critico {
+            background-color: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid #EF4444;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .urgente-alta {
+            background-color: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid #F59E0B;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -79,8 +104,8 @@ with st.sidebar:
         "Navegação",
         [
             "🔵 Dashboard", 
-            "💬 Assistente Jurídico RAG", 
-            "🤖 Triagem Jurídica", 
+            "🤖 Assistente Jurídico IA", 
+            "💬 Triagem Jurídica", 
             "👤 Meu Perfil", 
             "⚙️ Configurações", 
             "🔔 Notificações", 
@@ -116,25 +141,38 @@ elif pagina_selecionada == "🔔 Notificações":
     st.markdown("---")
     st.info("Nenhuma nova notificação pendente.")
 
-# MÓDULO: DASHBOARD
+# MÓDULO: DASHBOARD (ATUALIZADO COM CARDS SaaS PREMIUM)
 elif pagina_selecionada == "🔵 Dashboard":
-    st.title("📊 Painel de Controle")
-    st.markdown("Bem-vindo ao seu resumo executivo do escritório.")
+    st.title("📊 Painel Executivo de Inteligência Jurídica")
+    st.markdown("Visão geral em tempo real do desempenho e fluxo do escritório.")
     
+    # KPIs Estilo BI SaaS
     col1, col2, col3 = st.columns(3)
-    col1.metric("Triagens Realizadas", "24", "+3 desde ontem")
-    col2.metric("Documentos RAG", "12", "Estável")
-    col3.metric("Urgências Detectadas", "2", "⚠️ Atenção", delta_color="inverse")
+    col1.metric("Triagens Realizadas", "24 triagens", "↑ 14,3% vs. período anterior")
+    col2.metric("Documentos Indexados", "12 docs", "Estável no período")
+    col3.metric("Urgências Detectadas", "2 urgências", "1 crítica · 1 alta", delta_color="inverse")
     
     st.markdown("---")
     
-    st.subheader("📈 Distribuição de Demandas por Área")
+    # Destaque do Diferencial de IA do SaaS
+    st.markdown("""
+        <div class="saas-card" style="border-left: 4px solid #8B5CF6;">
+            <h4 style="margin: 0 0 8px 0; color: #E2E8F0;">🤖 Desempenho do Assistente Jurídico IA</h4>
+            <p style="margin: 0; color: #94A3B8; font-size: 14px;">
+                <b>12</b> documentos indexados &nbsp;|&nbsp; 
+                <b>87</b> consultas RAG realizadas &nbsp;|&nbsp; 
+                <b>94%</b> de respostas com validação de fontes e jurisprudência
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
     
-    # Gráfico corporativo limpo usando componentes nativos organizados
-    with st.container():
+    col_dash_esq, col_dash_dir = st.columns(2)
+    
+    with col_dash_esq:
+        st.subheader("📈 Distribuição de Demandas por Área")
         st.markdown(
             """
-            <div style="background-color: #0E1117; padding: 20px; border-radius: 10px; border: 1px solid #262730;">
+            <div class="saas-card">
                 <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Trabalhista (10 casos)</p>
             </div>
             """, 
@@ -144,7 +182,7 @@ elif pagina_selecionada == "🔵 Dashboard":
         
         st.markdown(
             """
-            <div style="background-color: #0E1117; padding: 20px; border-radius: 10px; border: 1px solid #262730; margin-top: 10px;">
+            <div class="saas-card" style="margin-top: 10px;">
                 <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Cível (8 casos)</p>
             </div>
             """, 
@@ -154,18 +192,74 @@ elif pagina_selecionada == "🔵 Dashboard":
         
         st.markdown(
             """
-            <div style="background-color: #0E1117; padding: 20px; border-radius: 10px; border: 1px solid #262730; margin-top: 10px;">
+            <div class="saas-card" style="margin-top: 10px;">
                 <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Consumidor (6 casos)</p>
             </div>
             """, 
             unsafe_allow_html=True
         )
         st.progress(0.6)
+        
+        # Módulo: Distribuição por Risco
+        st.subheader("⚖️ Distribuição por Risco Processual")
+        st.markdown("""
+            <div class="saas-card">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
+                    <span style="color: #3B82F6;">🟢 Baixo Risco (40%)</span>
+                    <span style="color: #10B981;">🟡 Médio Risco (35%)</span>
+                    <span style="color: #F59E0B;">🟠 Alto Risco (15%)</span>
+                    <span style="color: #EF4444;">🔴 Crítico (10%)</span>
+                </div>
+                <div style="background-color: #262730; border-radius: 6px; height: 12px; width: 100%; display: flex; overflow: hidden;">
+                    <div style="width: 40%; background-color: #3B82F6;"></div>
+                    <div style="width: 35%; background-color: #10B981;"></div>
+                    <div style="width: 15%; background-color: #F59E0B;"></div>
+                    <div style="width: 10%; background-color: #EF4444;"></div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
-# MÓDULO: ASSISTENTE JURÍDICO RAG
-elif pagina_selecionada == "💬 Assistente Jurídico RAG":
-    st.title("💬 Assistente Jurídico Inteligente (RAG)")
-    st.markdown("Análise avançada de contratos, petições e documentos com segurança de dados.")
+    with col_dash_dir:
+        # Módulo: Casos Urgentes Acionáveis
+        st.subheader("🔴 Casos Urgentes Requerendo Ação")
+        st.markdown("""
+            <div class="saas-card">
+                <div class="urgente-critico">
+                    <strong style="color: #EF4444;">🚨 [Crítico] Prazo fatal Trabalhista</strong><br>
+                    <small style="color: #94A3B8;">Cliente: Indústria Textil Alfa · Vencimento amanhã</small>
+                </div>
+                <div class="urgente-alta">
+                    <strong style="color: #F59E0B;">⚠️ [Alta] Notificação Extrajudicial Cível</strong><br>
+                    <small style="color: #94A3B8;">Cliente: Condomínio Bella Vista · Prazo de 48h</small>
+                </div>
+                <br>
+                <button style="background-color: #1F2937; color: #FFFFFF; border: 1px solid #374151; padding: 8px 16px; border-radius: 6px; cursor: pointer; width: 100%;">
+                    Ver todos os casos urgentes →
+                </button>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Módulo: Evolução das Triagens (Últimos dias)
+        st.subheader("📈 Evolução das Triagens (Últimos Dias)")
+        st.markdown("""
+            <div class="saas-card">
+                <p style="color: #94A3B8; font-size: 13px; margin-bottom: 10px;">Volume de atendimentos automatizados nos últimos 7 dias:</p>
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 100px; padding-top: 10px;">
+                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 40px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Seg</small></div>
+                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 65px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Ter</small></div>
+                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 50px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qua</small></div>
+                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 85px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qui</small></div>
+                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 95px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sex</small></div>
+                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 30px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sáb</small></div>
+                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 20px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Dom</small></div>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+# MÓDULO: ASSISTENTE JURÍDICO IA (COM RAG E FONTES)
+elif pagina_selecionada == "🤖 Assistente Jurídico IA":
+    st.title("🤖 Assistente Jurídico IA (RAG & Base de Conhecimento)")
+    st.markdown("Análise avançada de contratos, petições e documentos legais apoiada por inteligência artificial e indexação de fontes.")
     
     col_t1, col_t2 = st.columns([6, 1])
     with col_t2:
@@ -198,9 +292,9 @@ elif pagina_selecionada == "💬 Assistente Jurídico RAG":
             except Exception:
                 texto_documentos += str(arquivo.read(), "utf-8", errors="ignore")
         
-        st.success(f"✅ {len(uploaded_files)} documento(s) carregado(s) e processados com sucesso!")
+        st.success(f"✅ {len(uploaded_files)} documento(s) carregado(s), indexados e prontos para consulta via RAG!")
     else:
-        st.info("💡 Dica: Envie arquivos de contratos ou petições acima para começar a consulta.")
+        st.info("💡 Dica: Envie arquivos de contratos ou petições acima para começar a consulta baseada em fontes.")
 
     if "historico_rag" not in st.session_state:
         st.session_state.historico_rag = [
@@ -211,7 +305,7 @@ elif pagina_selecionada == "💬 Assistente Jurídico RAG":
         with st.chat_message(mensagem["role"]):
             st.markdown(mensagem["content"])
 
-    if query := st.chat_input("Digite sua dúvida jurídica sobre os documentos..."):
+    if query := st.chat_input("Digite sua dúvida jurídica sobre os documentos indexados..."):
         if not uploaded_files:
             st.warning("⚠️ Por favor, envie ao menos um documento antes de fazer perguntas.")
         else:
@@ -228,7 +322,7 @@ elif pagina_selecionada == "💬 Assistente Jurídico RAG":
 
                 prompt_rag_sistema = SystemMessage(content=(
                     "Você é um assistente jurídico especialista em análise de contratos e documentos. "
-                    "Responda estritamente com base no texto do documento fornecido abaixo.\n\n"
+                    "Responda estritamente com base no texto do documento fornecido abaixo, citando as fontes quando aplicável.\n\n"
                     f"--- DOCUMENTO(S) ---\n{texto_documentos[:15000]}"
                 ))
                 
@@ -245,8 +339,8 @@ elif pagina_selecionada == "💬 Assistente Jurídico RAG":
                 st.error(f"Erro ao processar a análise com a IA: {e}")
 
 # MÓDULO: TRIAGEM JURÍDICA
-elif pagina_selecionada == "🤖 Triagem Jurídica":
-    st.title("🤖 Triagem Jurídica")
+elif pagina_selecionada == "💬 Triagem Jurídica":
+    st.title("💬 Triagem Jurídica via WhatsApp")
     st.markdown("Atendimento inicial automatizado para identificar a demanda, coletar informações e encaminhar o cliente ao setor responsável.")
     
     col_t1, col_t2 = st.columns([6, 1])
