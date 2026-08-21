@@ -12,19 +12,13 @@ st.set_page_config(
 )
 
 # ==========================================
-# 1. ESTADOS DA SESSÃO (LOGIN E NAVEGAÇÃO)
+# 1. ESTADOS DA SESSÃO
 # ==========================================
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
-if "pagina_auth" not in st.session_state:
-    st.session_state.pagina_auth = "login"
-
-if "pagina_ativa_extra" not in st.session_state:
-    st.session_state.pagina_ativa_extra = "principal"
-
 # ==========================================
-# TELA DE AUTENTICAÇÃO (LOGIN / REGISTRO / RECUPERAÇÃO)
+# TELA DE AUTENTICAÇÃO (LOGIN)
 # ==========================================
 if not st.session_state.autenticado:
     st.title("⚖️ Assistente Jurídico LM - Acesso Corporativo")
@@ -39,7 +33,6 @@ if not st.session_state.autenticado:
         if st.button("Entrar no Sistema", use_container_width=True):
             if email_login and senha_login:
                 st.session_state.autenticado = True
-                st.session_state.pagina_ativa_extra = "principal"
                 st.rerun()
             else:
                 st.warning("Preencha todos os campos para continuar.")
@@ -61,7 +54,7 @@ if not st.session_state.autenticado:
     st.stop()
 
 # ==========================================
-# 2. SISTEMA INTERNO (APÓS O LOGIN)
+# 2. SISTEMA INTERNO (BARRA LATERAL UNIFICADA)
 # ==========================================
 with st.sidebar:
     st.markdown("## ⚖️ Painel Corporativo")
@@ -69,220 +62,178 @@ with st.sidebar:
     st.markdown("<span style='color: #10B981; font-size: 14px;'>● Online</span>", unsafe_allow_html=True)
     st.markdown("---")
     
-    st.markdown("**PRINCIPAL**")
-    menu_opcao = st.radio(
-        "Navegação Principal",
-        ["🔵 Dashboard", "💬 Assistente Jurídico RAG", "🤖 Triagem Jurídica"],
-        label_visibility="collapsed",
-        key="menu_principal_radio"
+    # Menu unificado para evitar conflito de estados
+    pagina_selecionada = st.radio(
+        "Navegação",
+        [
+            "🔵 Dashboard", 
+            "💬 Assistente Jurídico RAG", 
+            "🤖 Triagem Jurídica", 
+            "👤 Meu Perfil", 
+            "⚙️ Configurações", 
+            "🔔 Notificações", 
+            "🚪 Sair do Sistema"
+        ],
+        label_visibility="collapsed"
     )
     
-    st.markdown("---")
-    st.markdown("**CONTA**")
-    opcao_conta = st.radio(
-        "Navegação Conta",
-        ["👤 Meu Perfil", "⚙️ Configurações"],
-        label_visibility="collapsed",
-        key="conta_radio"
-    )
-    
-    st.markdown("---")
-    st.markdown("**SISTEMA**")
-    opcao_sistema = st.radio(
-        "Navegação Sistema",
-        ["🔔 Notificações", "🚪 Sair do Sistema"],
-        label_visibility="collapsed",
-        key="sistema_radio"
-    )
-    
-    if menu_opcao:
-        st.session_state.pagina_ativa_extra = "principal"
-
-    if opcao_conta == "👤 Meu Perfil":
-        st.session_state.pagina_ativa_extra = "perfil"
-    elif opcao_conta == "⚙️ Configurações":
-        st.session_state.pagina_ativa_extra = "config"
-    elif opcao_sistema == "🔔 Notificações":
-        st.session_state.pagina_ativa_extra = "notificacoes"
-    elif opcao_sistema == "🚪 Sair do Sistema":
+    if pagina_selecionada == "🚪 Sair do Sistema":
         st.session_state.autenticado = False
         st.rerun()
 
-pagina_atual = st.session_state.get("pagina_ativa_extra", "principal")
-
 # ==========================================
-# 3. ROTEAMENTO DAS TELAS (EXIBIÇÃO)
+# 3. ROTEAMENTO DAS TELAS
 # ==========================================
 
-if pagina_atual == "perfil":
+if pagina_selecionada == "👤 Meu Perfil":
     st.title("👤 Meu Perfil")
     st.markdown("Gerencie suas informações profissionais.")
     st.markdown("---")
     st.text_input("Nome Completo", value="Dr. Sérgio Luiz")
     st.text_input("E-mail", value="sergio.luiz@escritorio.com")
 
-elif pagina_atual == "config":
+elif pagina_selecionada == "⚙️ Configurações":
     st.title("⚙️ Configurações")
     st.markdown("Ajustes gerais do sistema.")
     st.markdown("---")
     st.toggle("Modo Escuro", value=True)
 
-elif pagina_atual == "notificacoes":
+elif pagina_selecionada == "🔔 Notificações":
     st.title("🔔 Notificações")
     st.markdown("Avisos recentes.")
     st.markdown("---")
     st.info("Nenhuma nova notificação pendente.")
 
-elif pagina_atual == "principal":
+# MÓDULO: DASHBOARD
+elif pagina_selecionada == "🔵 Dashboard":
+    st.title("📊 Painel de Controle")
+    st.markdown("Bem-vindo ao seu resumo executivo do escritório.")
     
-    # ------------------------------------------
-    # MÓDULO: DASHBOARD
-    # ------------------------------------------
-    if menu_opcao == "🔵 Dashboard":
-        st.title("📊 Painel de Controle")
-        st.markdown("Bem-vindo ao seu resumo executivo do escritório.")
-        
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Triagens Realizadas", "24", "+3 desde ontem")
-        col2.metric("Documentos RAG", "12", "Estável")
-        col3.metric("Urgências Detectadas", "2", "⚠️ Atenção", delta_color="inverse")
-        
-        st.markdown("---")
-        
-        st.subheader("🚀 Ações Rápidas")
-        col_a1, col_a2, col_a3 = st.columns(3)
-        if col_a1.button("🤖 Iniciar Triagem"):
-            st.session_state.menu_principal_radio = "🤖 Triagem Jurídica"
-            st.rerun()
-        if col_a2.button("📄 Análise RAG"):
-            st.session_state.menu_principal_radio = "💬 Assistente Jurídico RAG"
-            st.rerun()
-        if col_a3.button("👤 Cadastrar Cliente"):
-            st.info("Função em desenvolvimento...")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Triagens Realizadas", "24", "+3 desde ontem")
+    col2.metric("Documentos RAG", "12", "Estável")
+    col3.metric("Urgências Detectadas", "2", "⚠️ Atenção", delta_color="inverse")
+    
+    st.markdown("---")
+    
+    st.subheader("📈 Distribuição de Demandas")
+    df = pd.DataFrame({'Área': ['Trabalhista', 'Cível', 'Consumidor'], 'Casos': [10, 8, 6]})
+    st.bar_chart(df.set_index('Área'))
 
-        st.subheader("📈 Distribuição de Demandas")
-        df = pd.DataFrame({'Área': ['Trabalhista', 'Cível', 'Consumidor'], 'Casos': [10, 8, 6]})
-        st.bar_chart(df.set_index('Área'))
-
-    # ------------------------------------------
-    # MÓDULO: ASSISTENTE JURÍDICO RAG
-    # ------------------------------------------
-    elif menu_opcao == "💬 Assistente Jurídico RAG":
-        st.title("💬 Assistente Jurídico Inteligente (RAG)")
-        st.markdown("Análise avançada de contratos, petições e documentos com segurança de dados.")
-        
-        col_t1, col_t2 = st.columns([6, 1])
-        with col_t2:
-            if st.button("🗑️ Limpar Histórico", use_container_width=True):
-                st.session_state.historico_rag = [
-                    {"role": "assistant", "content": "Olá! Envie seu documento acima e faça perguntas específicas sobre o conteúdo dele."}
-                ]
-                st.rerun()
-                
-        st.markdown("---")
-
-        GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "")
-        if not GROQ_API_KEY:
-            st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit Cloud.")
-            st.stop()
-
-        uploaded_files = st.file_uploader(
-            "Envie seus documentos jurídicos (PDF, Word, TXT)", 
-            type=["pdf", "docx", "txt"], 
-            accept_multiple_files=True
-        )
-
-        texto_documentos = ""
-        if uploaded_files:
-            for arquivo in uploaded_files:
-                try:
-                    leitor_pdf = pypdf.PdfReader(arquivo)
-                    for pagina in leitor_pdf.pages:
-                        texto_documentos += pagina.extract_text() or ""
-                except Exception:
-                    texto_documentos += str(arquivo.read(), "utf-8", errors="ignore")
-            
-            st.success(f"✅ {len(uploaded_files)} documento(s) carregado(s) e processados com sucesso!")
-        else:
-            st.info("💡 Dica: Envie arquivos de contratos ou petições acima para começar a consulta.")
-
-        if "historico_rag" not in st.session_state:
+# MÓDULO: ASSISTENTE JURÍDICO RAG
+elif pagina_selecionada == "💬 Assistente Jurídico RAG":
+    st.title("💬 Assistente Jurídico Inteligente (RAG)")
+    st.markdown("Análise avançada de contratos, petições e documentos com segurança de dados.")
+    
+    col_t1, col_t2 = st.columns([6, 1])
+    with col_t2:
+        if st.button("🗑️ Limpar Histórico", use_container_width=True):
             st.session_state.historico_rag = [
                 {"role": "assistant", "content": "Olá! Envie seu documento acima e faça perguntas específicas sobre o conteúdo dele."}
             ]
+            st.rerun()
+            
+    st.markdown("---")
 
-        for mensagem in st.session_state.historico_rag:
-            with st.chat_message(mensagem["role"]):
-                st.markdown(mensagem["content"])
+    GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "")
+    if not GROQ_API_KEY:
+        st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit Cloud.")
+        st.stop()
 
-        if query := st.chat_input("Digite sua dúvida jurídica sobre os documentos..."):
-            if not uploaded_files:
-                st.warning("⚠️ Por favor, envie ao menos um documento antes de fazer perguntas.")
-            else:
-                st.session_state.historico_rag.append({"role": "user", "content": query})
-                with st.chat_message("user"):
-                    st.markdown(query)
+    uploaded_files = st.file_uploader(
+        "Envie seus documentos jurídicos (PDF, Word, TXT)", 
+        type=["pdf", "docx", "txt"], 
+        accept_multiple_files=True
+    )
 
-                try:
-                    llm = ChatGroq(
-                        temperature=0.2,
-                        model_name="openai/gpt-oss-20b",
-                        groq_api_key=GROQ_API_KEY
-                    )
-
-                    prompt_rag_sistema = SystemMessage(content=(
-                        "Você é um assistente jurídico especialista em análise de contratos e documentos. "
-                        "Responda estritamente com base no texto do documento fornecido abaixo. "
-                        "Se a resposta não estiver no documento, informe claramente.\n\n"
-                        f"--- DOCUMENTO(S) ---\n{texto_documentos[:15000]}"
-                    ))
-                    
-                    mensagens_rag = [prompt_rag_sistema, HumanMessage(content=query)]
-
-                    with st.spinner("Analisando o documento com inteligência artificial..."):
-                        resposta_ia = llm.invoke(mensagens_rag)
-
-                    st.session_state.historico_rag.append({"role": "assistant", "content": resposta_ia.content})
-                    with st.chat_message("assistant"):
-                        st.markdown(resposta_ia.content)
-
-                except Exception as e:
-                    st.error(f"Erro ao processar a análise com a IA: {e}")
-
-    # ------------------------------------------
-    # MÓDULO: TRIAGEM JURÍDICA
-    # ------------------------------------------
-    elif menu_opcao == "🤖 Triagem Jurídica":
-        st.title("🤖 Triagem Jurídica")
-        st.markdown("Atendimento inicial automatizado para identificar a demanda, coletar informações e encaminhar o cliente ao setor responsável.")
+    texto_documentos = ""
+    if uploaded_files:
+        for arquivo in uploaded_files:
+            try:
+                leitor_pdf = pypdf.PdfReader(arquivo)
+                for pagina in leitor_pdf.pages:
+                    texto_documentos += pagina.extract_text() or ""
+            except Exception:
+                texto_documentos += str(arquivo.read(), "utf-8", errors="ignore")
         
-        col_t1, col_t2 = st.columns([6, 1])
-        with col_t2:
-            if st.button("🗑️ Limpar Histórico", use_container_width=True, key="limpar_triagem"):
-                st.session_state.mensagens_bot = [
-                    SystemMessage(content="Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo atendimento inicial e triagem jurídica."),
-                    HumanMessage(content="Olá! Gostaria de tirar uma dúvida jurídica.")
-                ]
-                st.session_state.historico_chat = [
-                    {"role": "assistant", "content": "Olá! Seja bem-vindo(a) ao nosso atendimento jurídico ⚖️. Como posso te ajudar hoje?"}
-                ]
-                st.rerun()
+        st.success(f"✅ {len(uploaded_files)} documento(s) carregado(s) e processados com sucesso!")
+    else:
+        st.info("💡 Dica: Envie arquivos de contratos ou petições acima para começar a consulta.")
 
-        with st.expander("ℹ️ Sobre o Fluxo de Atendimento e Conformidade"):
-            st.markdown("""
-            * **Arquitetura do Fluxo:** `Cliente` ➔ `WhatsApp` ➔ **Triagem Jurídica** ➔ `Identificação da Demanda` ➔ `Perguntas de Triagem` ➔ `Classificação` ➔ `Encaminhamento ao Advogado`.
-            * **Aviso Legal:** *Este assistente realiza exclusivamente triagem automatizada e apoio informacional preliminar. A análise técnica, aconselhamento e parecer jurídico definitivo são de responsabilidade exclusiva do advogado titular.*
-            """)
-        
-        st.markdown("---")
+    if "historico_rag" not in st.session_state:
+        st.session_state.historico_rag = [
+            {"role": "assistant", "content": "Olá! Envie seu documento acima e faça perguntas específicas sobre o conteúdo dele."}
+        ]
 
-        GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "")
-        if not GROQ_API_KEY:
-            st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit Cloud.")
-            st.stop()
+    for mensagem in st.session_state.historico_rag:
+        with st.chat_message(mensagem["role"]):
+            st.markdown(mensagem["content"])
 
-        # Prompt completo e detalhado solicitado
-        PROMPT_JURIDICO_WHATSAPP = """Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo
+    if query := st.chat_input("Digite sua dúvida jurídica sobre os documentos..."):
+        if not uploaded_files:
+            st.warning("⚠️ Por favor, envie ao menos um documento antes de fazer perguntas.")
+        else:
+            st.session_state.historico_rag.append({"role": "user", "content": query})
+            with st.chat_message("user"):
+                st.markdown(query)
+
+            try:
+                llm = ChatGroq(
+                    temperature=0.2,
+                    model_name="openai/gpt-oss-20b",
+                    groq_api_key=GROQ_API_KEY
+                )
+
+                prompt_rag_sistema = SystemMessage(content=(
+                    "Você é um assistente jurídico especialista em análise de contratos e documentos. "
+                    "Responda estritamente com base no texto do documento fornecido abaixo. "
+                    "Se a resposta não estiver no documento, informe claramente.\n\n"
+                    f"--- DOCUMENTO(S) ---\n{texto_documentos[:15000]}"
+                ))
+                
+                mensagens_rag = [prompt_rag_sistema, HumanMessage(content=query)]
+
+                with st.spinner("Analisando o documento com inteligência artificial..."):
+                    resposta_ia = llm.invoke(mensagens_rag)
+
+                st.session_state.historico_rag.append({"role": "assistant", "content": resposta_ia.content})
+                with st.chat_message("assistant"):
+                    st.markdown(resposta_ia.content)
+
+            except Exception as e:
+                st.error(f"Erro ao processar a análise com a IA: {e}")
+
+# MÓDULO: TRIAGEM JURÍDICA
+elif pagina_selecionada == "🤖 Triagem Jurídica":
+    st.title("🤖 Triagem Jurídica")
+    st.markdown("Atendimento inicial automatizado para identificar a demanda, coletar informações e encaminhar o cliente ao setor responsável.")
+    
+    col_t1, col_t2 = st.columns([6, 1])
+    with col_t2:
+        if st.button("🗑️ Limpar Histórico", use_container_width=True, key="limpar_triagem"):
+            st.session_state.mensagens_bot = [
+                SystemMessage(content="Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo atendimento inicial e triagem jurídica."),
+                HumanMessage(content="Olá! Gostaria de tirar uma dúvida jurídica.")
+            ]
+            st.session_state.historico_chat = [
+                {"role": "assistant", "content": "Olá! Seja bem-vindo(a) ao nosso atendimento jurídico ⚖️. Como posso te ajudar hoje?"}
+            ]
+            st.rerun()
+
+    with st.expander("ℹ️ Sobre o Fluxo de Atendimento e Conformidade"):
+        st.markdown("""
+        * **Arquitetura do Fluxo:** `Cliente` ➔ `WhatsApp` ➔ **Triagem Jurídica** ➔ `Identificação da Demanda` ➔ `Perguntas de Triagem` ➔ `Classificação` ➔ `Encaminhamento ao Advogado`.
+        * **Aviso Legal:** *Este assistente realiza exclusivamente triagem automatizada e apoio informacional preliminar. A análise técnica, aconselhamento e parecer jurídico definitivo são de responsabilidade exclusiva do advogado titular.*
+        """)
+    
+    st.markdown("---")
+
+    GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "")
+    if not GROQ_API_KEY:
+        st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit Cloud.")
+        st.stop()
+
+    PROMPT_JURIDICO_WHATSAPP = """Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo
 ATENDIMENTO INICIAL E TRIAGEM JURÍDICA de potenciais clientes.
 
 ==================================================
@@ -293,7 +244,6 @@ Sua função é realizar o primeiro atendimento de forma profissional, cordial,
 clara e humanizada.
 
 Seu objetivo é:
-
 - acolher o potencial cliente;
 - compreender o problema apresentado;
 - identificar a área jurídica relacionada;
@@ -306,7 +256,6 @@ Seu objetivo é:
 - preparar o encaminhamento para um advogado do escritório.
 
 Você NÃO substitui um advogado e NÃO realiza aconselhamento jurídico definitivo.
-
 A análise técnica, interpretação jurídica, definição de estratégia e tomada de
 decisão profissional são responsabilidades exclusivas do advogado responsável.
 
@@ -315,7 +264,6 @@ decisão profissional são responsabilidades exclusivas do advogado responsável
 ==================================================
 
 Mantenha uma comunicação:
-
 - cordial;
 - profissional;
 - empática;
@@ -324,12 +272,8 @@ Mantenha uma comunicação:
 - adequada para atendimento via WhatsApp.
 
 Evite linguagem excessivamente técnica quando ela não for necessária.
-
 Não faça várias perguntas desnecessárias de uma única vez.
-
-Faça as perguntas de forma progressiva, considerando as informações que o cliente
-já forneceu.
-
+Faça as perguntas de forma progressiva, considerando as informações que o cliente já forneceu.
 NUNCA pergunte novamente algo que o cliente já informou claramente.
 
 ==================================================
@@ -337,7 +281,6 @@ NUNCA pergunte novamente algo que o cliente já informou claramente.
 ==================================================
 
 Sempre que possível, siga esta sequência:
-
 1. Compreender o relato inicial.
 2. Identificar a área jurídica provável.
 3. Identificar o problema principal.
@@ -351,191 +294,69 @@ Sempre que possível, siga esta sequência:
 11. Informar o próximo passo.
 12. Encaminhar ao advogado quando necessário.
 
-O fluxo NÃO precisa seguir rigidamente essa ordem.
-
-Adapte as perguntas de acordo com o contexto apresentado pelo cliente.
+O fluxo NÃO precisa seguir rigidamente essa ordem. Adapte as perguntas de acordo com o contexto apresentado pelo cliente.
 
 ==================================================
 4. PERGUNTAS ADAPTATIVAS
 ==================================================
 
 Faça somente perguntas relevantes para compreender o caso.
-
-Exemplo:
-
-Se o cliente já informou:
-"Fui demitido ontem por justa causa."
-
-Não pergunte novamente quando ocorreu a demissão.
-
-Nesse caso, avance para informações como:
-
-- qual foi o motivo informado pela empresa;
-- se recebeu algum documento;
-- se possui contrato ou outros documentos;
-- se houve alguma comunicação formal;
-- quais fatos antecederam a demissão.
-
-As perguntas devem ser determinadas pelo contexto da conversa.
+Exemplo: Se o cliente já informou "Fui demitido ontem por justa causa", não pergunte novamente quando ocorreu a demissão. Avance para o motivo informado, se recebeu documentos, etc.
 
 ==================================================
 5. CLASSIFICAÇÃO DA DEMANDA
 ==================================================
 
 Quando houver informações suficientes, classifique a demanda considerando:
-
-- área jurídica;
+- área jurídica (Trabalhista, Civil, Família e Sucessões, Consumidor, Empresarial, Contratual, Previdenciário, Tributário, Penal, Administrativo, Outras);
 - tipo de problema;
 - nível de urgência;
-- informações disponíveis;
-- documentos disponíveis;
-- informações pendentes;
-- necessidade de encaminhamento ao advogado.
-
-Áreas possíveis incluem, quando aplicável:
-
-- Trabalhista;
-- Civil;
-- Família e Sucessões;
-- Consumidor;
-- Empresarial;
-- Contratual;
-- Previdenciário;
-- Tributário;
-- Penal;
-- Administrativo;
-- Outras.
-
-Caso não seja possível determinar a área com segurança, informe que a
-classificação ainda depende de informações adicionais.
-
-NÃO invente uma classificação apenas para preencher um campo.
+- documentos disponíveis.
 
 ==================================================
 6. SEGURANÇA E CONFIABILIDADE JURÍDICA
 ==================================================
 
 NUNCA:
-
-- invente leis;
-- invente artigos de lei;
-- invente jurisprudências;
-- invente decisões judiciais;
-- invente prazos processuais;
-- invente direitos;
+- invente leis, artigos, jurisprudências ou prazos;
 - garanta resultados de processos;
-- diga que o cliente certamente ganhará ou perderá uma ação;
-- apresente uma hipótese como se fosse uma conclusão jurídica;
 - recomende uma estratégia jurídica definitiva sem análise profissional.
-
-Quando uma informação jurídica depender de contexto, legislação atual,
-jurisprudência, documentos ou análise profissional, deixe essa limitação clara.
-
-Nunca apresente uma informação jurídica incerta como fato.
 
 ==================================================
 7. PRAZOS E URGÊNCIAS
 ==================================================
 
-Tenha atenção especial a situações que possam envolver:
-
-- prazos legais;
-- prazos processuais;
-- audiências;
-- notificações;
-- intimações;
-- contratos próximos do vencimento;
-- medidas urgentes;
-- risco de perda de direitos.
-
-NÃO informe um prazo específico apenas com base em conhecimento genérico
-quando não houver segurança suficiente.
-
-Se o prazo depender do caso concreto, informe que ele precisa ser confirmado
-pelo advogado responsável.
-
-Se o cliente mencionar uma situação potencialmente urgente, priorize a
-identificação dos fatos e recomende encaminhamento ao profissional responsável.
+Tenha atenção especial a prazos legais, audiências, notificações ou medidas urgentes. Se o prazo depender do caso concreto, informe que precisa ser confirmado pelo advogado responsável.
 
 ==================================================
 8. DOCUMENTOS
 ==================================================
 
-Pergunte sobre documentos relevantes quando eles puderem ajudar na análise.
-
-Exemplos:
-
-- contrato;
-- comunicado;
-- notificação;
-- decisão;
-- intimação;
-- comprovantes;
-- e-mails;
-- mensagens;
-- documentos trabalhistas;
-- documentos pessoais relacionados ao caso.
-
-NUNCA diga que analisou um documento se ele não foi realmente disponibilizado
-ao sistema.
-
-Quando houver documentos disponíveis por meio do sistema/RAG, utilize somente
-as informações efetivamente encontradas nesses documentos.
+Pergunte sobre documentos relevantes (contratos, notificações, comprovantes). Nunca diga que analisou um documento se ele não foi realmente disponibilizado.
 
 ==================================================
 9. USO DE RAG / BASE DE CONHECIMENTO
 ==================================================
 
-Quando houver uma base jurídica ou documentos disponibilizados pelo escritório,
-priorize essas fontes para responder questões relacionadas ao conteúdo delas.
-
-NÃO invente informações para preencher lacunas.
-
-Se a informação solicitada não estiver disponível na base fornecida, informe
-essa limitação e, quando apropriado, encaminhe a questão para análise humana.
-
-Quando possível, diferencie claramente:
-
-- informação encontrada na documentação;
-- informação fornecida pelo cliente;
-- informação que ainda precisa ser confirmada pelo advogado.
+Quando houver uma base jurídica ou documentos disponibilizados pelo escritório, priorize essas fontes. Não invente informações.
 
 ==================================================
 10. PRIVACIDADE
 ==================================================
 
-Trate as informações fornecidas pelo cliente como confidenciais.
-
-Solicite somente informações necessárias para a triagem.
-
-Evite solicitar dados pessoais desnecessários.
-
-Não exponha informações de um cliente para outro usuário.
-
-Não compartilhe informações internas do escritório.
+Trate as informações fornecidas pelo cliente como confidenciais. Solicite apenas o necessário.
 
 ==================================================
 11. ENCAMINHAMENTO AO ADVOGADO
 ==================================================
 
-Quando a triagem estiver suficientemente completa, explique que as informações
-serão encaminhadas ou preparadas para análise do advogado responsável.
-
-Exemplo de encerramento:
-
-"Entendi. Com as informações fornecidas, consegui identificar os principais
-pontos da sua situação. Vou organizar os dados para que o advogado responsável
-possa realizar uma análise mais detalhada."
-
-Não prometa contato, prazo de retorno ou resultado caso isso não esteja
-definido pelo sistema ou pelo escritório.
+Quando a triagem estiver completa, explique que os dados serão encaminhados para análise do advogado responsável.
 
 ==================================================
 12. RESUMO INTERNO DA TRIAGEM
 ==================================================
 
 Quando solicitado pelo sistema, organize o caso utilizando:
-
 ÁREA JURÍDICA:
 TIPO DE DEMANDA:
 RESUMO DOS FATOS:
@@ -547,79 +368,52 @@ POSSÍVEL URGÊNCIA:
 PRÓXIMO PASSO:
 STATUS DA TRIAGEM:
 
-O resumo deve conter somente informações realmente fornecidas pelo cliente
-ou encontradas nas fontes disponíveis.
-
-Não invente campos ou informações ausentes.
-
 ==================================================
 13. LIMITES DO ASSISTENTE
 ==================================================
 
-O assistente realiza triagem e apoio informacional preliminar.
-
-Não substitui consulta, análise ou parecer de advogado.
-
-Sempre que a situação exigir interpretação jurídica específica, estratégia
-processual, análise documental complexa ou decisão profissional, encaminhe
-para o advogado responsável.
+O assistente realiza triagem e apoio informacional preliminar. Não substitui consulta ou parecer de advogado.
 
 ==================================================
 14. COMPORTAMENTO GERAL
 ==================================================
 
-Antes de responder, considere o histórico da conversa e as informações já
-fornecidas pelo cliente.
+Priorize segurança, precisão, clareza e encaminhamento adequado. Seu objetivo é realizar uma TRIAGEM JURÍDICA INICIAL DE QUALIDADE."""
 
-Se houver informação suficiente, avance a triagem.
+    if "mensagens_bot" not in st.session_state:
+        st.session_state.mensagens_bot = [
+            SystemMessage(content=PROMPT_JURIDICO_WHATSAPP),
+            HumanMessage(content="Olá! Gostaria de tirar uma dúvida jurídica.")
+        ]
+        st.session_state.historico_chat = [
+            {"role": "assistant", "content": "Olá! Seja bem-vindo(a) ao nosso atendimento jurídico ⚖️. Como posso te ajudar hoje?"}
+        ]
 
-Se faltar informação essencial, faça uma pergunta objetiva.
+    for mensagem in st.session_state.historico_chat:
+        with st.chat_message(mensagem["role"]):
+            st.markdown(mensagem["content"])
 
-Não repita perguntas.
+    if user_input := st.chat_input("Digite a mensagem do cliente..."):
+        st.session_state.historico_chat.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
 
-Não dê respostas jurídicas definitivas sem base suficiente.
-
-Priorize segurança, precisão, clareza e encaminhamento adequado.
-
-Seu objetivo principal NÃO é responder o maior número possível de perguntas.
-
-Seu objetivo é realizar uma TRIAGEM JURÍDICA INICIAL DE QUALIDADE e preparar
-informações úteis para o profissional responsável."""
-
-        if "mensagens_bot" not in st.session_state:
-            st.session_state.mensagens_bot = [
-                SystemMessage(content=PROMPT_JURIDICO_WHATSAPP),
-                HumanMessage(content="Olá! Gostaria de tirar uma dúvida jurídica.")
-            ]
-            st.session_state.historico_chat = [
-                {"role": "assistant", "content": "Olá! Seja bem-vindo(a) ao nosso atendimento jurídico ⚖️. Como posso te ajudar hoje?"}
-            ]
-
-        for mensagem in st.session_state.historico_chat:
-            with st.chat_message(mensagem["role"]):
-                st.markdown(mensagem["content"])
-
-        if user_input := st.chat_input("Digite a mensagem do cliente..."):
-            st.session_state.historico_chat.append({"role": "user", "content": user_input})
-            with st.chat_message("user"):
-                st.markdown(user_input)
-
-            try:
-                llm = ChatGroq(
-                    temperature=0.3,
-                    model_name="openai/gpt-oss-20b",
-                    groq_api_key=GROQ_API_KEY
-                )
+        try:
+            llm = ChatGroq(
+                temperature=0.3,
+                model_name="openai/gpt-oss-20b",
+                groq_api_key=GROQ_API_KEY
+            )
+            
+            st.session_state.mensagens_bot.append(HumanMessage(content=user_input))
+            
+            with st.spinner("O bot está processando a triagem..."):
+                resposta_ia = llm.invoke(st.session_state.mensagens_bot)
                 
-                st.session_state.mensagens_bot.append(HumanMessage(content=user_input))
+            st.session_state.mensagens_bot.append(resposta_ia)
+            st.session_state.historico_chat.append({"role": "assistant", "content": resposta_ia.content})
+            with st.chat_message("assistant"):
+                st.markdown(resposta_ia.content)
                 
-                with st.spinner("O bot está processando a triagem..."):
-                    resposta_ia = llm.invoke(st.session_state.mensagens_bot)
-                    
-                st.session_state.mensagens_bot.append(resposta_ia)
-                st.session_state.historico_chat.append({"role": "assistant", "content": resposta_ia.content})
-                with st.chat_message("assistant"):
-                    st.markdown(resposta_ia.content)
-                    
-            except Exception as e:
-                st.error(f"Erro ao processar a resposta da IA: {e}")
+        except Exception as e:
+            st.error(f"Erro ao processar a resposta da IA: {e}")
