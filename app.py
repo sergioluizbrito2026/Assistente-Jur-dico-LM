@@ -8,12 +8,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# Inicializa o estado de autenticação na sessão
+# Inicializa o estado de autenticação e controle de telas na sessão
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
+if "tela_auth" not in st.session_state:
+    st.session_state.tela_auth = "login"
+
 # ==========================================
-# 1. TELA DE LOGIN / CADASTRO (SE NÃO LOGADO)
+# 1. TELA DE LOGIN / CADASTRO / RECUPERAÇÃO
 # ==========================================
 if not st.session_state.autenticado:
     st.markdown("""
@@ -70,9 +73,8 @@ if not st.session_state.autenticado:
             </div>
         """, unsafe_allow_html=True)
 
-        aba_login, aba_cadastro = st.tabs(["🔑 Entrar", "📝 Criar Conta"])
-
-        elif st.session_state.tela_auth == "login":
+        # Lógica de alternância de telas controlada por session_state
+        if st.session_state.tela_auth == "login":
             aba_login, aba_cadastro = st.tabs(["🔑 Entrar", "📝 Criar Conta"])
             
             with aba_login:
@@ -84,20 +86,64 @@ if not st.session_state.autenticado:
                     if entrar:
                         if email_l and senha_l:
                             st.session_state.autenticado = True
+                            st.success("Login efetuado com sucesso!")
                             st.rerun()
                         else:
-                            st.warning("Preencha todos os campos.")
-
-                # Botão funcional para o "Esqueci minha senha" logo abaixo do formulário
+                            st.warning("Preencha todos os campos para entrar.")
+                
+                # Botão funcional para mudar para a tela de recuperação de senha
                 if st.button("Esqueci minha senha", type="tertiary"):
                     st.session_state.tela_auth = "recuperar"
                     st.rerun()
                 
                 st.markdown('<div class="divider">ou</div>', unsafe_allow_html=True)
-                
-                # Botão atualizado com o texto solicitado
                 if st.button("🔵 Logar com a conta Google", use_container_width=True):
                     st.info("Redirecionando para autenticação Google...")
+
+            with aba_cadastro:
+                with st.form("form_cadastro_sistema"):
+                    st.markdown("<p style='color: #94A3B8; font-size: 13px;'>Preencha os dados abaixo para solicitar seu registro.</p>", unsafe_allow_html=True)
+                    
+                    col_nome, col_sobrenome = st.columns(2)
+                    with col_nome:
+                        nome = st.text_input("Nome", placeholder="João")
+                    with col_sobrenome:
+                        sobrenome = st.text_input("Sobrenome", placeholder="Silva")
+                        
+                    email_c = st.text_input("E-mail Profissional", placeholder="exemplo@user.com", key="c_email")
+                    senha_c = st.text_input("Senha de Acesso", type="password", placeholder="••••••••", key="c_senha")
+                    termo = st.checkbox("Li e concordo com os Termos & Condições")
+                    
+                    cadastrar = st.form_submit_button("Criar Conta", use_container_width=True)
+                    if cadastrar:
+                        if nome and email_c and senha_c and termo:
+                            st.session_state.autenticado = True
+                            st.success("Conta criada e sessão iniciada!")
+                            st.rerun()
+                        elif not termo:
+                            st.error("Você precisa aceitar os Termos & Condições.")
+                        else:
+                            st.warning("Preencha os campos obrigatórios.")
+
+        elif st.session_state.tela_auth == "recuperar":
+            st.markdown("### 🔐 Recuperação de Senha")
+            st.markdown("<p style='color: #94A3B8; font-size: 13px;'>Digite seu e-mail cadastrado para receber as instruções.</p>", unsafe_allow_html=True)
+            
+            with st.form("form_recuperar"):
+                email_rec = st.text_input("E-mail de Recuperação", placeholder="seu.email@escritorio.com")
+                enviar_link = st.form_submit_button("Enviar link de recuperação", use_container_width=True)
+                
+                if enviar_link:
+                    if email_rec:
+                        st.success("Link de recuperação enviado com sucesso para o seu e-mail!")
+                    else:
+                        st.warning("Por favor, digite seu e-mail.")
+
+            if st.button("⬅️ Voltar para o Login"):
+                st.session_state.tela_auth = "login"
+                st.rerun()
+    
+    st.stop()
 
         with aba_cadastro:
             with st.form("form_cadastro_sistema"):
