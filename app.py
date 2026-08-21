@@ -72,28 +72,32 @@ if not st.session_state.autenticado:
 
         aba_login, aba_cadastro = st.tabs(["🔑 Entrar", "📝 Criar Conta"])
 
-        with aba_login:
-            with st.form("form_login_sistema"):
-                email_l = st.text_input("E-mail", placeholder="seu.email@escritorio.com", key="l_email")
-                senha_l = st.text_input("Senha", type="password", placeholder="••••••••", key="l_senha")
-                
-                # Link simulado de recuperação de senha
-                st.markdown("<p style='text-align: right; margin-top: -10px;'><a href='#' style='color: #60A5FA; font-size: 12px; text-decoration: none;'>Esqueci minha senha</a></p>", unsafe_allow_html=True)
-                
-                entrar = st.form_submit_button("Entrar", use_container_width=True)
-                if entrar:
-                    if email_l and senha_l:
-                        st.session_state.autenticado = True
-                        st.success("Login efetuado com sucesso!")
-                        st.rerun()
-                    else:
-                        st.warning("Preencha todos os campos para entrar.")
+        elif st.session_state.tela_auth == "login":
+            aba_login, aba_cadastro = st.tabs(["🔑 Entrar", "📝 Criar Conta"])
             
-            # Botão / Opção para Login com Google integrado à estética
-            st.markdown('<div class="divider">ou</div>', unsafe_allow_html=True)
-            if st.button("🔵 Continuar com Google", use_container_width=True):
-                # Aqui entraria a lógica de redirecionamento OAuth com provedor externo (Firebase/Supabase)
-                st.info("Redirecionando para autenticação Google...")
+            with aba_login:
+                with st.form("form_login_sistema"):
+                    email_l = st.text_input("E-mail", placeholder="seu.email@escritorio.com", key="l_email")
+                    senha_l = st.text_input("Senha", type="password", placeholder="••••••••", key="l_senha")
+                    
+                    entrar = st.form_submit_button("Entrar", use_container_width=True)
+                    if entrar:
+                        if email_l and senha_l:
+                            st.session_state.autenticado = True
+                            st.rerun()
+                        else:
+                            st.warning("Preencha todos os campos.")
+
+                # Botão funcional para o "Esqueci minha senha" logo abaixo do formulário
+                if st.button("Esqueci minha senha", type="tertiary"):
+                    st.session_state.tela_auth = "recuperar"
+                    st.rerun()
+                
+                st.markdown('<div class="divider">ou</div>', unsafe_allow_html=True)
+                
+                # Botão atualizado com o texto solicitado
+                if st.button("🔵 Logar com a conta Google", use_container_width=True):
+                    st.info("Redirecionando para autenticação Google...")
 
         with aba_cadastro:
             with st.form("form_cadastro_sistema"):
