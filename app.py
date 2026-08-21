@@ -37,6 +37,25 @@ if not st.session_state.autenticado:
             font-weight: 600;
             padding: 10px;
         }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #94A3B8;
+            font-size: 13px;
+            margin: 15px 0;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .divider::before {
+            margin-right: .75em;
+        }
+        .divider::after {
+            margin-left: .75em;
+        }
         </style>
     """, unsafe_allow_html=True)
 
@@ -58,7 +77,10 @@ if not st.session_state.autenticado:
                 email_l = st.text_input("E-mail", placeholder="seu.email@escritorio.com", key="l_email")
                 senha_l = st.text_input("Senha", type="password", placeholder="••••••••", key="l_senha")
                 
-                entrar = st.form_submit_button("Acessar Painel", use_container_width=True)
+                # Link simulado de recuperação de senha
+                st.markdown("<p style='text-align: right; margin-top: -10px;'><a href='#' style='color: #60A5FA; font-size: 12px; text-decoration: none;'>Esqueci minha senha</a></p>", unsafe_allow_html=True)
+                
+                entrar = st.form_submit_button("Entrar", use_container_width=True)
                 if entrar:
                     if email_l and senha_l:
                         st.session_state.autenticado = True
@@ -66,6 +88,12 @@ if not st.session_state.autenticado:
                         st.rerun()
                     else:
                         st.warning("Preencha todos os campos para entrar.")
+            
+            # Botão / Opção para Login com Google integrado à estética
+            st.markdown('<div class="divider">ou</div>', unsafe_allow_html=True)
+            if st.button("🔵 Continuar com Google", use_container_width=True):
+                # Aqui entraria a lógica de redirecionamento OAuth com provedor externo (Firebase/Supabase)
+                st.info("Redirecionando para autenticação Google...")
 
         with aba_cadastro:
             with st.form("form_cadastro_sistema"):
