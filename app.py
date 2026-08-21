@@ -131,17 +131,66 @@ if menu_opcao == "💬 Assistente RAG":
         accept_multiple_files=True
     )
 
+    # Extrai o texto dos documentos enviados para a memória do RAG
+    texto_documentos = ""
     if uploaded_files:
-        st.success(f"✅ {len(uploaded_files)} documento(s) carregado(s) com sucesso!")
+        import pypdf
+        for arquivo in uploaded_files:
+            try:
+                leitor_pdf = pypdf.PdfReader(arquivo)
+                for pagina in leitor_pdf.pages:
+                    texto_documentos += pagina.extract_text() or ""
+            except Exception:
+                texto_documentos += str(arquivo.read(), "utf-8", errors="ignore")
+        
+        st.success(f"✅ {len(uploaded_files)} documento(s) carregado(s) e processados com sucesso!")
     else:
-        st.info("💡 Dica: Envie arquivos de contratos ou petições acima para começar.")
+        st.info("💡 Dica: Envie arquivos de contratos ou petições acima para começar a consulta.")
+
+    # Histórico específico para o chat do RAG
+    if "historico_rag" not in st.session_state:
+        st.session_state.historico_rag = [
+            {"role": "assistant", "content": "Olá! Envie seu documento acima e faça perguntas específicas sobre o conteúdo dele."}
+        ]
+
+    for mensagem in st.session_state.historico_rag:
+        with st.chat_message(mensagem["role"]):
+            st.markdown(mensagem["content"])
 
     if query := st.chat_input("Digite sua dúvida jurídica sobre os documentos..."):
-        with st.chat_message("user"):
-            st.markdown(query)
-        with st.chat_message("assistant"):
-            with st.spinner("Analisando documentos com IA..."):
-                st.markdown(f"Análise preliminar estruturada para: *'{query}'*.")
+        if not uploaded_files:
+            st.warning("⚠️ Por favor, envie ao menos um documento antes de fazer perguntas.")
+        else:
+            st.session_state.historico_rag.append({"role": "user", "content": query})
+            with st.chat_message("user"):
+                st.markdown(query)
+
+            try:
+                llm = ChatGroq(
+                    temperature=0.2,
+                    model_name="openai/gpt-oss-20b",
+                    groq_api_key=GROQ_API_KEY
+                )
+
+                # Prompt injetando o texto real do documento lido
+                prompt_rag_sistema = SystemMessage(content=(
+                    "Você é um assistente jurídico especialista em análise de contratos e documentos. "
+                    "Responda estritamente com base no texto do documento fornecido abaixo. "
+                    "Se a resposta não estiver no documento, informe claramente.\n\n"
+                    f"--- DOCUMENTO(S) ---\n{texto_documentos[:15000]}"
+                ))
+                
+                mensagens_rag = [prompt_rag_sistema, HumanMessage(content=query)]
+
+                with st.spinner("Analisando o documento com inteligência artificial..."):
+                    resposta_ia = llm.invoke(mensagens_rag)
+
+                st.session_state.historico_rag.append({"role": "assistant", "content": resposta_ia.content})
+                with st.chat_message("assistant"):
+                    st.markdown(resposta_ia.content)
+
+            except Exception as e:
+                st.error(f"Erro ao processar a análise com a IA: {e}")
 
 # MÓDULO 2: BOT DE TRIAGEM
 elif menu_opcao == "🤖 Bot de Triagem":
