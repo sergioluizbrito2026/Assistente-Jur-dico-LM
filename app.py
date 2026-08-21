@@ -78,7 +78,7 @@ if not st.session_state.autenticado:
             
             with aba_login:
                 with st.form("form_login_sistema"):
-                    email_l = st.text_input("E-mail", placeholder="seu.email@escritorio.com", key="l_email")
+                    email_l = st.text_input("E-mail", placeholder="sergiolmendes2026@gmail.com", key="l_email")
                     senha_l = st.text_input("Senha", type="password", placeholder="••••••••", key="l_senha")
                     
                     entrar = st.form_submit_button("Entrar", use_container_width=True)
