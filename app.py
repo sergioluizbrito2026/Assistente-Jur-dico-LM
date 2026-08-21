@@ -207,8 +207,7 @@ elif menu_opcao == "🤖 Assistente de Triagem":
         st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit Cloud.")
         st.stop()
 
-   PROMPT_JURIDICO_WHATSAPP = """
-Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo
+    PROMPT_JURIDICO_WHATSAPP = """Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo
 ATENDIMENTO INICIAL E TRIAGEM JURÍDICA de potenciais clientes.
 
 ==================================================
@@ -510,8 +509,7 @@ Priorize segurança, precisão, clareza e encaminhamento adequado.
 Seu objetivo principal NÃO é responder o maior número possível de perguntas.
 
 Seu objetivo é realizar uma TRIAGEM JURÍDICA INICIAL DE QUALIDADE e preparar
-informações úteis para o profissional responsável.
-"""
+informações úteis para o profissional responsável."""
 
     if "mensagens_bot" not in st.session_state:
         st.session_state.mensagens_bot = [
