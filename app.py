@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# CSS PERSONALIZADO (SIDEBAR + GRÁFICO CUSTOMIZADO)
+# CSS PERSONALIZADO (SIDEBAR)
 # ==========================================
 st.markdown("""
     <style>
@@ -20,36 +20,6 @@ st.markdown("""
         [data-testid="stSidebar"] {
             min-width: 300px;
             max-width: 300px;
-        }
-        
-        /* Estilização moderna para o mini gráfico de barras corporativo */
-        .card-demanda {
-            background-color: #111B27;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        .barra-container {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            height: 28px;
-            width: 100%;
-            margin: 8px 0 16px 0;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-        }
-        .barra-preenchida {
-            height: 100%;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            padding-left: 12px;
-            color: white;
-            font-weight: 600;
-            font-size: 13px;
-            transition: width 0.5s ease-in-out;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -160,34 +130,37 @@ elif pagina_selecionada == "🔵 Dashboard":
     
     st.subheader("📈 Distribuição de Demandas por Área")
     
-    # Gráfico customizado elegante com cores separadas para cada barra
-    st.markdown("""
-        <div class="card-demanda">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-weight: 500; color: #E2E8F0;">Trabalhista</span>
-                <span style="color: #8B5CF6; font-weight: bold;">10 casos</span>
+    # Gráfico corporativo limpo usando componentes nativos organizados
+    with st.container():
+        st.markdown(
+            """
+            <div style="background-color: #0E1117; padding: 20px; border-radius: 10px; border: 1px solid #262730;">
+                <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Trabalhista (10 casos)</p>
             </div>
-            <div class="barra-container">
-                <div class="barra-preenchida" style="width: 100%; background: linear-gradient(90deg, #7C3AED, #8B5CF6);">10</div>
+            """, 
+            unsafe_allow_html=True
+        )
+        st.progress(1.0)
+        
+        st.markdown(
+            """
+            <div style="background-color: #0E1117; padding: 20px; border-radius: 10px; border: 1px solid #262730; margin-top: 10px;">
+                <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Cível (8 casos)</p>
             </div>
-
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-weight: 500; color: #E2E8F0;">Cível</span>
-                <span style="color: #10B981; font-weight: bold;">8 casos</span>
+            """, 
+            unsafe_allow_html=True
+        )
+        st.progress(0.8)
+        
+        st.markdown(
+            """
+            <div style="background-color: #0E1117; padding: 20px; border-radius: 10px; border: 1px solid #262730; margin-top: 10px;">
+                <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Consumidor (6 casos)</p>
             </div>
-            <div class="barra-container">
-                <div class="barra-preenchida" style="width: 80%; background: linear-gradient(90deg, #059669, #10B981);">8</div>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <span style="font-weight: 500; color: #E2E8F0;">Consumidor</span>
-                <span style="color: #3B82F6; font-weight: bold;">6 casos</span>
-            </div>
-            <div class="barra-container">
-                <div class="barra-preenchida" style="width: 60%; background: linear-gradient(90deg, #2563EB, #3B82F6);">6</div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+            """, 
+            unsafe_allow_html=True
+        )
+        st.progress(0.6)
 
 # MÓDULO: ASSISTENTE JURÍDICO RAG
 elif pagina_selecionada == "💬 Assistente Jurídico RAG":
@@ -443,8 +416,7 @@ STATUS DA TRIAGEM:
 O assistente realiza triagem e apoio informacional preliminar. Não substitui consulta ou parecer de advogado.
 
 ==================================================
-14. COMPORTAMENTO GERAL
-=================================================="""
+14. COMPORTAMENTO GERAL"""
 
     if "mensagens_bot" not in st.session_state:
         st.session_state.mensagens_bot = [
