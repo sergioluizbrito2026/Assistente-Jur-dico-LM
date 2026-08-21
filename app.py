@@ -230,15 +230,7 @@ elif pagina_atual == "notificacoes":
     st.info("Nenhuma nova notificação pendente.")
 
 # ==========================================
-# DASHBOARD
-# ==========================================
-elif pagina_atual == "principal" and menu_opcao == "🔵 Dashboard":
-    st.title("🔵 Dashboard Corporativo")
-    st.markdown("Visão geral e atalhos do escritório.")
-    st.markdown("---")
-    st.info("💡 Utilize o menu lateral para acessar o **Assistente Jurídico RAG** ou a **Triagem Jurídica**.")
 
-# ==========================================
 # MÓDULO 1: ASSISTENTE RAG
 # ==========================================
 elif pagina_atual == "principal" and menu_opcao == "💬 Assistente Jurídico RAG":
