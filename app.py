@@ -98,14 +98,12 @@ if not st.session_state.autenticado:
 # 2. SISTEMA INTERNO (APÓS O LOGIN)
 # ==========================================
 
-# Barra Lateral Controlada com Segurança
 with st.sidebar:
     st.markdown("## ⚖️ Painel Corporativo")
     st.markdown("👤 **Dr. Sérgio Luiz**")
     st.markdown("<span style='color: #10B981; font-size: 14px;'>● Online</span>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # Seletor de Módulos (Menu lateral seguro)
     menu_opcao = st.radio(
         "Navegação do Sistema",
         ["💬 Assistente RAG", "🤖 Bot de Triagem"]
@@ -147,8 +145,16 @@ if menu_opcao == "💬 Assistente RAG":
 
 # MÓDULO 2: BOT DE TRIAGEM
 elif menu_opcao == "🤖 Bot de Triagem":
-    st.title("🤖 Bot de Atendimento e Triagem Jurídica")
-    st.markdown("Simulador do bot de atendimento automatizado para o WhatsApp do escritório.")
+    st.title("🤖 Bot de Triagem Jurídica")
+    st.markdown("Atendimento inicial automatizado para identificar a demanda, coletar informações e encaminhar o cliente ao setor responsável.")
+    
+    # Caixa informativa com o fluxo e aviso legal recomendado
+    with st.expander("ℹ️ Sobre o Fluxo de Atendimento e Conformidade"):
+        st.markdown("""
+        * **Arquitetura do Fluxo:** `Cliente` ➔ `WhatsApp` ➔ **Bot de Triagem** ➔ `Identificação da Demanda` ➔ `Perguntas de Triagem` ➔ `Classificação` ➔ `Encaminhamento ao Advogado`.
+        * **Aviso Legal:** *Este assistente realiza exclusivamente triagem automatizada e apoio informacional preliminar. A análise técnica, aconselhamento e parecer jurídico definitivo são de responsabilidade exclusiva do advogado titular.*
+        """)
+    
     st.markdown("---")
 
     GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "")
@@ -157,8 +163,9 @@ elif menu_opcao == "🤖 Bot de Triagem":
         st.stop()
 
     PROMPT_JURIDICO_WHATSAPP = """
-    Você é o Assistente Virtual Oficial do escritório de advocacia. 
-    Sua função é realizar o atendimento inicial, acolhimento e triagem de potenciais clientes.
+    Você é o Assistente Virtual Oficial do escritório de advocacia para triagem inicial. 
+    Sua função é acolher o potencial cliente, identificar amigavelmente a demanda, coletar fatos essenciais e classificá-la, 
+    sempre reforçando que a orientação jurídica final será feita por um advogado humano do escritório.
     """
 
     if "mensagens_bot" not in st.session_state:
@@ -188,7 +195,7 @@ elif menu_opcao == "🤖 Bot de Triagem":
             
             st.session_state.mensagens_bot.append(HumanMessage(content=user_input))
             
-            with st.spinner("O bot está digitando a resposta..."):
+            with st.spinner("O bot está processando a triagem..."):
                 resposta_ia = llm.invoke(st.session_state.mensagens_bot)
                 
             st.session_state.mensagens_bot.append(resposta_ia)
