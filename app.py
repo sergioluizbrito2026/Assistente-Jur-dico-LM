@@ -149,7 +149,7 @@ if not st.session_state.autenticado:
                             # Conexão com o servidor do Gmail
                             # Nota: Use a 'Senha de App' gerada no Google, não sua senha comum
                             server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-                            server.login("seu-email@gmail.com", "sua-senha-de-app-aqui") # <--- COLOQUE A SENHA DE APP AQUI
+                            server.login("sergiolmendes2026@gmail.com", "sawzczaxwlqsobky") 
                             server.send_message(msg)
                             server.quit()
                             st.success("✅ E-mail enviado com sucesso! Verifique sua caixa de entrada.")
