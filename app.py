@@ -148,13 +148,13 @@ if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
 if "total_triagens" not in st.session_state:
-    st.session_state.total_triagens = 0
+    st.session_state.total_triagens 
 
 if "total_documentos" not in st.session_state:
-    st.session_state.total_documentos = 0
+    st.session_state.total_documentos 
 
 if "total_urgencias" not in st.session_state:
-    st.session_state.total_urgencias = 0
+    st.session_state.total_urgencias 
 
 if "pagina_atual" not in st.session_state:
     st.session_state.pagina_atual = "Dashboard"
