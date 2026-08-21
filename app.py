@@ -3,13 +3,27 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_groq import ChatGroq
 import pypdf
 import pandas as pd
+import plotly.express as px
 
-# Configuração da página
+# Configuração da página (deve ser a primeira linha do Streamlit)
 st.set_page_config(
     page_title="Assistente Jurídico LM",
     page_icon="⚖️",
     layout="wide"
 )
+
+# ==========================================
+# CSS PERSONALIZADO (ALARGAR A SIDEBAR)
+# ==========================================
+st.markdown("""
+    <style>
+        /* Aumenta a largura da barra lateral para 300px (padrão é menor) */
+        [data-testid="stSidebar"] {
+            min-width: 300px;
+            max-width: 300px;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # ==========================================
 # 1. ESTADOS DA SESSÃO
@@ -54,7 +68,7 @@ if not st.session_state.autenticado:
     st.stop()
 
 # ==========================================
-# 2. SISTEMA INTERNO (BARRA LATERAL UNIFICADA)
+# 2. SISTEMA INTERNO (BARRA LATERAL)
 # ==========================================
 with st.sidebar:
     st.markdown("## ⚖️ Painel Corporativo")
@@ -62,7 +76,6 @@ with st.sidebar:
     st.markdown("<span style='color: #10B981; font-size: 14px;'>● Online</span>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # Menu unificado para evitar conflito de estados
     pagina_selecionada = st.radio(
         "Navegação",
         [
@@ -116,9 +129,39 @@ elif pagina_selecionada == "🔵 Dashboard":
     
     st.markdown("---")
     
-    st.subheader("📈 Distribuição de Demandas")
-    df = pd.DataFrame({'Área': ['Trabalhista', 'Cível', 'Consumidor'], 'Casos': [10, 8, 6]})
-    st.bar_chart(df.set_index('Área'))
+    st.subheader("📈 Distribuição de Demandas por Área")
+    
+    # Criando dados com cores customizadas para cada barra usando Plotly
+    df_demandas = pd.DataFrame({
+        'Área': ['Consumidor', 'Cível', 'Trabalhista'],
+        'Casos': [6, 8, 10],
+        'Cor': ['#3B82F6', '#10B981', '#8B5CF6']
+    })
+    
+    fig = px.bar(
+        df_demandas, 
+        x='Área', 
+        y='Casos', 
+        color='Área',
+        color_discrete_map={
+            'Consumidor': '#3B82F6', 
+            'Cível': '#10B981', 
+            'Trabalhista': '#8B5CF6'
+        },
+        text='Casos'
+    )
+    
+    fig.update_traces(textposition='outside')
+    fig.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font_color='white',
+        xaxis=dict(showgrid=False),
+        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.1)'),
+        showlegend=False
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
 
 # MÓDULO: ASSISTENTE JURÍDICO RAG
 elif pagina_selecionada == "💬 Assistente Jurídico RAG":
