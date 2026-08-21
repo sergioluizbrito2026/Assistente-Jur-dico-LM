@@ -20,3 +20,9 @@ msoffcrypto-tool
 google-generativeai
 torch
 torchvision
+streamlit
+langchain-core
+langchain-groq
+pypdf
+pandas
+plotly
