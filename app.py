@@ -269,6 +269,46 @@ elif pagina_atual == "notificacoes":
     st.markdown("---")
     st.info("Nenhuma nova notificação pendente.")
 
+elif pagina_atual == "principal" and menu_opcao == "🔵 Dashboard":
+    st.title("📊 Painel de Controle")
+    st.markdown("Bem-vindo ao seu resumo executivo do escritório.")
+    
+    # KPIs (Indicadores)
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Triagens Realizadas", "24", "+3 desde ontem")
+    col2.metric("Documentos RAG", "12", "Estável")
+    col3.metric("Urgências Detectadas", "2", "⚠️ Atenção", delta_color="inverse")
+    
+    st.markdown("---")
+    
+    # Atalhos rápidos
+    st.subheader("🚀 Ações Rápidas")
+    col_a1, col_a2, col_a3 = st.columns(3)
+    if col_a1.button("🤖 Iniciar Triagem"):
+        st.session_state.menu_principal_radio = "🤖 Triagem Jurídica"
+        st.session_state.pagina_ativa_extra = "principal"
+        st.rerun()
+    if col_a2.button("📄 Análise RAG"):
+        st.session_state.menu_principal_radio = "💬 Assistente Jurídico RAG"
+        st.session_state.pagina_ativa_extra = "principal"
+        st.rerun()
+    if col_a3.button("👤 Cadastrar Cliente"):
+        st.info("Função em desenvolvimento...")
+
+    # Gráfico simples (simulado)
+    st.subheader("📈 Distribuição de Demandas")
+    import pandas as pd
+    df = pd.DataFrame({'Área': ['Trabalhista', 'Cível', 'Consumidor'], 'Casos': [10, 8, 6]})
+    st.bar_chart(df.set_index('Área'))
+
+# E logo abaixo continuam os seus outros módulos principais (RAG e Triagem)
+elif pagina_atual == "principal" and menu_opcao == "💬 Assistente Jurídico RAG":
+    # (Seu código do RAG...)
+    pass
+
+elif pagina_atual == "principal" and menu_opcao == "🤖 Triagem Jurídica":
+    # (Seu código da Triagem...)
+    pass
 # ==========================================
 # MÓDULO 1: ASSISTENTE RAG
 # ==========================================
