@@ -427,6 +427,46 @@ elif pagina_atual == "principal" and menu_opcao == "🤖 Triagem Jurídica":
         st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit Cloud.")
         st.stop()
 
+    PROMPT_JURIDICO_WHATSAPP = """Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo ATENDIMENTO INICIAL E TRIAGEM JURÍDICA de potenciais clientes."""
+
+    if "mensagens_bot" not in st.session_state:
+        st.session_state.mensagens_bot = [
+            SystemMessage(content=PROMPT_JURIDICO_WHATSAPP),
+            HumanMessage(content="Olá! Gostaria de tirar uma dúvida jurídica.")
+        ]
+        st.session_state.historico_chat = [
+            {"role": "assistant", "content": "Olá! Seja bem-vindo(a) ao nosso atendimento jurídico ⚖️. Como posso te ajudar hoje?"}
+        ]
+
+    for mensagem in st.session_state.historico_chat:
+        with st.chat_message(mensagem["role"]):
+            st.markdown(mensagem["content"])
+
+    if user_input := st.chat_input("Digite a mensagem do cliente..."):
+        st.session_state.historico_chat.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.markdown(user_input)
+
+        try:
+            llm = ChatGroq(
+                temperature=0.3,
+                model_name="openai/gpt-oss-20b",
+                groq_api_key=GROQ_API_KEY
+            )
+            
+            st.session_state.mensagens_bot.append(HumanMessage(content=user_input))
+            
+            with st.spinner("O bot está processando a triagem..."):
+                resposta_ia = llm.invoke(st.session_state.mensagens_bot)
+                
+            st.session_state.mensagens_bot.append(resposta_ia)
+            st.session_state.historico_chat.append({"role": "assistant", "content": resposta_ia.content})
+            with st.chat_message("assistant"):
+                st.markdown(resposta_ia.content)
+                
+        except Exception as e:
+            st.error(f"Erro ao processar a resposta da IA: {e}")
+
     PROMPT_JURIDICO_WHATSAPP = """Você é o Assistente Virtual Oficial de um escritório de advocacia, responsável pelo
 ATENDIMENTO INICIAL E TRIAGEM JURÍDICA de potenciais clientes.
 
