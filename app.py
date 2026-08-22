@@ -442,21 +442,39 @@ elif pagina_selecionada == "Dashboard":
                 st.session_state.mostrar_urgencias_detalhadas = True
                 st.rerun()
             
-            st.subheader("📈 Evolução das Triagens (Últimos Dias)")
-            st.markdown("""
-                <div class="saas-card">
-                    <p style="color: #94A3B8; font-size: 13px; margin-bottom: 10px;">Volume de atendimentos automatizados nos últimos 7 dias:</p>
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 100px; padding-top: 10px;">
-                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 40px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Seg</small></div>
-                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 65px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Ter</small></div>
-                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 50px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qua</small></div>
-                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 85px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qui</small></div>
-                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 95px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sex</small></div>
-                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 30px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sáb</small></div>
-                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 20px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Dom</small></div>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
+           # SUBSTITUA A PARTE DO "Evolução das Triagens" POR ESTE FEED DINÂMICO
+        st.subheader("📋 Log de Atividades do Sistema")
+        st.markdown("""
+            <div class="saas-card" style="padding: 10px;">
+                <table style="width: 100%; border-collapse: collapse; color: #E2E8F0; font-size: 14px;">
+                    <tr style="border-bottom: 1px solid #262730; text-align: left;">
+                        <th style="padding: 8px;">Hora</th>
+                        <th style="padding: 8px;">Atividade</th>
+                        <th style="padding: 8px;">Status</th>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">11:15</td>
+                        <td style="padding: 8px;">Triagem iniciada (WhatsApp)</td>
+                        <td style="padding: 8px; color: #10B981;">● Concluído</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">10:45</td>
+                        <td style="padding: 8px;">Análise de Risco - Bella Vista</td>
+                        <td style="padding: 8px; color: #8B5CF6;">● Processado</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">09:20</td>
+                        <td style="padding: 8px;">Indexação PDF - Alfa S/A</td>
+                        <td style="padding: 8px; color: #10B981;">● Finalizado</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;">08:10</td>
+                        <td style="padding: 8px;">Backup automático diário</td>
+                        <td style="padding: 8px; color: #10B981;">● Finalizado</td>
+                    </tr>
+                </table>
+            </div>
+        """, unsafe_allow_html=True)
 
 elif pagina_selecionada == "AI Legal Assistant IA":
     st.title("🤖 Assistente Jurídico IA (RAG & Base de Conhecimento)")
