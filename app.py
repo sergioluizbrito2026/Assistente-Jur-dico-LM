@@ -184,16 +184,40 @@ if not st.session_state.autenticado:
             if st.button("Cadastrar", use_container_width=True):
                 st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
                 
-        with aba_recuperar:
+       with aba_recuperar:
             st.markdown("<br>", unsafe_allow_html=True)
             rec_email = st.text_input("Informe seu e-mail cadastrado", key="rec_email")
+            
             if st.button("Enviar Instruções", use_container_width=True):
                 if rec_email:
-                    st.success(f"✅ Instruções simuladas enviadas para **{rec_email}**.")
+                    try:
+                        # Configura a chave a partir dos segredos do Streamlit
+                        resend.api_key = st.secrets["RESEND_API_KEY"]
+                        
+                        # Parâmetros de envio do e-mail real
+                        params = {
+                            "from": "Assistente Jurídico LM <onboarding@resend.dev>",
+                            "to": [rec_email],
+                            "subject": "Redefinição de Senha - Assistente Jurídico LM",
+                            "html": """
+                                <div style='font-family: Arial, sans-serif; color: #333;'>
+                                    <h2>Redefinição de Senha</h2>
+                                    <p>Você solicitou a recuperação de acesso ao <b>Assistente Jurídico LM</b>.</p>
+                                    <p>Clique no link abaixo para cadastrar uma nova senha:</p>
+                                    <a href='https://seuapp.streamlit.app/' style='background: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Redefinir Senha</a>
+                                    <p style='font-size: 12px; color: #666; margin-top: 20px;'>Se você não solicitou isso, ignore este e-mail.</p>
+                                </div>
+                            """
+                        }
+                        
+                        # Dispara o e-mail
+                        response = resend.Emails.send(params)
+                        st.success(f"✅ E-mail real de recuperação enviado com sucesso para **{rec_email}**! Verifique sua caixa de entrada.")
+                        
+                    except Exception as e:
+                        st.error(f"❌ Erro ao enviar o e-mail: {e}")
                 else:
                     st.warning("⚠️ Por favor, informe o e-mail cadastrado.")
-                
-    st.stop()
 
 # ==========================================
 # 2. SISTEMA INTERNO (BARRA LATERAL CUSTOMIZADA)
