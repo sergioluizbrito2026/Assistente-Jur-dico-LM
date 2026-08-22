@@ -137,6 +137,12 @@ if "perfil_seccional" not in st.session_state:
 if "perfil_area" not in st.session_state:
     st.session_state.perfil_area = "Direito Trabalhista e Cível"
 
+# Armazenar resultados das análises de urgência
+if "resultado_analise_1" not in st.session_state:
+    st.session_state.resultado_analise_1 = ""
+if "resultado_analise_2" not in st.session_state:
+    st.session_state.resultado_analise_2 = ""
+
 # ==========================================
 # TELA DE AUTENTICAÇÃO (LOGIN)
 # ==========================================
@@ -274,6 +280,8 @@ elif pagina_selecionada == "Dashboard":
             st.rerun()
             
         st.markdown("---")
+
+        GROQ_API_KEY = st.secrets.get("GROQ_API_KEY", "")
         
         # Caso Crítico 1
         with st.container():
@@ -286,8 +294,26 @@ elif pagina_selecionada == "Dashboard":
                     <p><b>Documentos Vinculados:</b> Notificação_Inicial_Alfa.pdf (Indexado)</p>
                 </div>
             """, unsafe_allow_html=True)
+            
             if st.button("🤖 Gerar Minuta Preventiva de Contestação via IA", key="btn_minuta_1"):
-                st.success("Minuta de Contestação gerada com sucesso e enviada para revisão do Dr. Sérgio!")
+                if not GROQ_API_KEY:
+                    st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit.")
+                else:
+                    try:
+                        llm = ChatGroq(temperature=0.2, model_name="openai/gpt-oss-20b", groq_api_key=GROQ_API_KEY)
+                        prompt_ia = [
+                            SystemMessage(content=f"Você é um advogado especialista em {st.session_state.perfil_area}. Redija uma minuta preventiva de contestação trabalhista com base na urgência de horas extras e desvio de função para a Indústria Textil Alfa S/A."),
+                            HumanMessage(content="Gere a minuta de contestação de urgência.")
+                        ]
+                        with st.spinner("A IA está redigindo a minuta jurídica..."):
+                            res = llm.invoke(prompt_ia)
+                            st.session_state.resultado_analise_1 = res.content
+                    except Exception as e:
+                        st.error(f"Erro ao conectar com a IA: {e}")
+
+            if st.session_state.resultado_analise_1:
+                st.markdown("### 📄 Resultado da Minuta Gerada:")
+                st.info(st.session_state.resultado_analise_1)
 
         # Caso Urgente 2
         with st.container():
@@ -300,8 +326,26 @@ elif pagina_selecionada == "Dashboard":
                     <p><b>Documentos Vinculados:</b> Notificacao_BellaVista.pdf (Indexado)</p>
                 </div>
             """, unsafe_allow_html=True)
+            
             if st.button("🤖 Analisar Riscos e Resposta via IA", key="btn_minuta_2"):
-                st.success("Parecer preliminar gerado e salvo na pasta do cliente!")
+                if not GROQ_API_KEY:
+                    st.error("⚠️ Chave da API do Groq não configurada nos Segredos do Streamlit.")
+                else:
+                    try:
+                        llm = ChatGroq(temperature=0.2, model_name="openai/gpt-oss-20b", groq_api_key=GROQ_API_KEY)
+                        prompt_ia = [
+                            SystemMessage(content=f"Você é um advogado especialista em {st.session_state.perfil_area}. Faça uma análise de riscos e sugira uma resposta jurídica para uma notificação extrajudicial cobrando reparação por infiltrações em áreas comuns do Condomínio Residencial Bella Vista."),
+                            HumanMessage(content="Analise os riscos e elabore o parecer de resposta.")
+                        ]
+                        with st.spinner("A IA está analisando os riscos e redigindo o parecer..."):
+                            res = llm.invoke(prompt_ia)
+                            st.session_state.resultado_analise_2 = res.content
+                    except Exception as e:
+                        st.error(f"Erro ao conectar com a IA: {e}")
+
+            if st.session_state.resultado_analise_2:
+                st.markdown("### 📄 Parecer de Riscos e Resposta Gerado:")
+                st.success(st.session_state.resultado_analise_2)
 
     else:
         # DASHBOARD PADRÃO
@@ -648,7 +692,7 @@ Quando a triagem estiver completa, explique que os dados serão encaminhados par
 12. RESUMO INTERNO DA TRIAGEM
 ==================================================
 
-Когда solicitado pelo sistema, organize o caso utilizando:
+Quando solicitado pelo sistema, organize o caso utilizando:
 ÁREA JURÍDICA:
 TIPO DE DEMANDA:
 RESUMO DOS FATOS:
