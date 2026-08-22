@@ -184,7 +184,7 @@ if not st.session_state.autenticado:
             if st.button("Cadastrar", use_container_width=True):
                 st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
                 
-       # ==========================================
+ # ==========================================
 # TELA DE AUTENTICAÇÃO (LOGIN)
 # ==========================================
 if not st.session_state.autenticado:
@@ -199,8 +199,8 @@ if not st.session_state.autenticado:
         
         with aba_login:
             st.markdown("<br>", unsafe_allow_html=True)
-            email_login = st.text_input("E-mail corporativo", key="login_email")
-            senha_login = st.text_input("Senha", type="password", key="login_senha")
+            email_login = st.text_input("E-mail corporativo", key="input_login_email")
+            senha_login = st.text_input("Senha", type="password", key="input_login_senha")
             
             SENHA_MESTRE = "123456"
             
@@ -216,15 +216,15 @@ if not st.session_state.autenticado:
                     
         with aba_cadastro:
             st.markdown("<br>", unsafe_allow_html=True)
-            st.text_input("Nome Completo", key="cad_nome")
-            st.text_input("E-mail Corporativo", key="cad_email")
-            st.text_input("Senha", type="password", key="cad_senha")
+            st.text_input("Nome Completo", key="input_cad_nome")
+            st.text_input("E-mail Corporativo", key="input_cad_email")
+            st.text_input("Senha", type="password", key="input_cad_senha")
             if st.button("Cadastrar", use_container_width=True):
                 st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
                 
         with aba_recuperar:
             st.markdown("<br>", unsafe_allow_html=True)
-            rec_email = st.text_input("Informe seu e-mail cadastrado", key="rec_email")
+            rec_email = st.text_input("Informe seu e-mail cadastrado", key="input_rec_email")
             
             if st.button("Enviar Instruções", use_container_width=True):
                 if rec_email:
