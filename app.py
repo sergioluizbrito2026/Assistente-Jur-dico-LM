@@ -3,6 +3,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_groq import ChatGroq
 import pypdf
 import pandas as pd
+import resend
 
 # Configuração da página
 st.set_page_config(
