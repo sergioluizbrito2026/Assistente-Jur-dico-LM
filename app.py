@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# CSS PERSONALIZADO (SIDEBAR MODERNA + BOTÕES SaaS)
+# CSS PERSONALIZADO (SIDEBAR MODERNA + COMPONENTES SaaS)
 # ==========================================
 st.markdown("""
     <style>
@@ -113,6 +113,9 @@ if "autenticado" not in st.session_state:
 if "pagina_atual" not in st.session_state:
     st.session_state.pagina_atual = "Dashboard"
 
+if "mostrar_urgencias_detalhadas" not in st.session_state:
+    st.session_state.mostrar_urgencias_detalhadas = False
+
 if "total_triagens" not in st.session_state:
     st.session_state.total_triagens = 24
 
@@ -208,9 +211,11 @@ with st.sidebar:
             if nome == "Sair do Sistema":
                 st.session_state.autenticado = False
                 st.session_state.pagina_atual = "Dashboard"
+                st.session_state.mostrar_urgencias_detalhadas = False
                 st.rerun()
             else:
                 st.session_state.pagina_atual = nome
+                st.session_state.mostrar_urgencias_detalhadas = False
                 st.rerun()
 
 pagina_selecionada = st.session_state.pagina_atual
@@ -259,113 +264,155 @@ elif pagina_selecionada == "Notificações":
     st.info("Nenhuma nova notificação pendente.")
 
 elif pagina_selecionada == "Dashboard":
-    st.title("📊 Painel Executivo de Inteligência Jurídica")
-    st.markdown("Visão geral em tempo real do desempenho e fluxo do escritório.")
-    
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Triagens Realizadas", f"{st.session_state.total_triagens} triagens", "↑ 14,3% vs. período anterior")
-    col2.metric("Documentos Indexados", f"{st.session_state.total_documentos} docs", "Estável no período")
-    col3.metric("Urgências Detectadas", f"{st.session_state.total_urgencias} urgências", "1 crítica · 1 alta", delta_color="inverse")
-    
-    st.markdown("---")
-    
-    st.markdown(f"""
-        <div class="saas-card" style="border-left: 4px solid #8B5CF6;">
-            <h4 style="margin: 0 0 8px 0; color: #E2E8F0;">🤖 Desempenho do Assistente Jurídico IA ({st.session_state.perfil_area})</h4>
-            <p style="margin: 0; color: #94A3B8; font-size: 14px;">
-                <b>{st.session_state.total_documentos}</b> documentos indexados &nbsp;|&nbsp; 
-                <b>87</b> consultas RAG realizadas &nbsp;|&nbsp; 
-                <b>94%</b> de respostas com validação de fontes e jurisprudência
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    col_dash_esq, col_dash_dir = st.columns(2)
-    
-    with col_dash_esq:
-        st.subheader("📈 Distribuição de Demandas por Área")
-        st.markdown(
-            """
-            <div class="saas-card">
-                <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Trabalhista (10 casos)</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-        st.progress(1.0)
+    # SE O USUÁRIO CLICOU NO BOTÃO DE VER TODOS OS CASOS URGENTES
+    if st.session_state.mostrar_urgencias_detalhadas:
+        st.title("🚨 Central de Controle de Prazos e Urgências")
+        st.markdown("Lista detalhada de casos críticos e prazos fatais cadastrados no sistema.")
         
-        st.markdown(
-            """
-            <div class="saas-card" style="margin-top: 10px;">
-                <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Cível (8 casos)</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-        st.progress(0.8)
+        if st.button("← Voltar ao Dashboard Principal"):
+            st.session_state.mostrar_urgencias_detalhadas = False
+            st.rerun()
+            
+        st.markdown("---")
         
-        st.markdown(
-            """
-            <div class="saas-card" style="margin-top: 10px;">
-                <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Consumidor (6 casos)</p>
-            </div>
-            """, 
-            unsafe_allow_html=True
-        )
-        st.progress(0.6)
-        
-        st.subheader("⚖️ Distribuição por Risco Processual")
-        st.markdown("""
-            <div class="saas-card">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
-                    <span style="color: #3B82F6;">🟢 Baixo Risco (40%)</span>
-                    <span style="color: #10B981;">🟡 Médio Risco (35%)</span>
-                    <span style="color: #F59E0B;">🟠 Alto Risco (15%)</span>
-                    <span style="color: #EF4444;">🔴 Crítico (10%)</span>
+        # Caso Crítico 1
+        with st.container():
+            st.markdown("""
+                <div class="saas-card" style="border-left: 4px solid #EF4444;">
+                    <h3 style="color: #EF4444; margin-top: 0;">🚨 [Crítico] Prazo Fatal Trabalhista - Reclamatória</h3>
+                    <p><b>Cliente:</b> Indústria Textil Alfa S/A</p>
+                    <p><b>Vencimento do Prazo:</b> Amanhã, às 23:59 (Restam 14h)</p>
+                    <p><b>Resumo da Demanda:</b> Defesa em face de reclamatória trabalhista cobrando horas extras e desvio de função. Necessário protocolo urgente de contestação.</p>
+                    <p><b>Documentos Vinculados:</b> Notificação_Inicial_Alfa.pdf (Indexado)</p>
                 </div>
-                <div style="background-color: #262730; border-radius: 6px; height: 12px; width: 100%; display: flex; overflow: hidden;">
-                    <div style="width: 40%; background-color: #3B82F6;"></div>
-                    <div style="width: 35%; background-color: #10B981;"></div>
-                    <div style="width: 15%; background-color: #F59E0B;"></div>
-                    <div style="width: 10%; background-color: #EF4444;"></div>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+            if st.button("🤖 Gerar Minuta Preventiva de Contestação via IA", key="btn_minuta_1"):
+                st.success("Minuta de Contestação gerada com sucesso e enviada para revisão do Dr. Sérgio!")
 
-    with col_dash_dir:
-        st.subheader("🔴 Casos Urgentes Requerendo Ação")
-        st.markdown("""
-            <div class="saas-card">
-                <div class="urgente-critico">
-                    <strong style="color: #EF4444;">🚨 [Crítico] Prazo fatal Trabalhista</strong><br>
-                    <small style="color: #94A3B8;">Cliente: Indústria Textil Alfa · Vencimento amanhã</small>
+        # Caso Urgente 2
+        with st.container():
+            st.markdown("""
+                <div class="saas-card" style="border-left: 4px solid #F59E0B;">
+                    <h3 style="color: #F59E0B; margin-top: 0;">⚠️ [Alta] Notificação Extrajudicial Cível</h3>
+                    <p><b>Cliente:</b> Condomínio Residencial Bella Vista</p>
+                    <p><b>Vencimento do Prazo:</b> Em 48 horas</p>
+                    <p><b>Resumo da Demanda:</b> Notificação cobrando reparação por infiltrações nas áreas comuns. Análise prévia de responsabilidade civil em andamento.</p>
+                    <p><b>Documentos Vinculados:</b> Notificacao_BellaVista.pdf (Indexado)</p>
                 </div>
-                <div class="urgente-alta">
-                    <strong style="color: #F59E0B;">⚠️ [Alta] Notificação Extrajudicial Cível</strong><br>
-                    <small style="color: #94A3B8;">Cliente: Condomínio Bella Vista · Prazo de 48h</small>
-                </div>
-                <br>
-                <button style="background-color: #1F2937; color: #FFFFFF; border: 1px solid #374151; padding: 8px 16px; border-radius: 6px; cursor: pointer; width: 100%;">
-                    Ver todos os casos urgentes →
-                </button>
+            """, unsafe_allow_html=True)
+            if st.button("🤖 Analisar Riscos e Resposta via IA", key="btn_minuta_2"):
+                st.success("Parecer preliminar gerado e salvo na pasta do cliente!")
+
+    else:
+        # DASHBOARD PADRÃO
+        st.title("📊 Painel Executivo de Inteligência Jurídica")
+        st.markdown("Visão geral em tempo real do desempenho e fluxo do escritório.")
+        
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Triagens Realizadas", f"{st.session_state.total_triagens} triagens", "↑ 14,3% vs. período anterior")
+        col2.metric("Documentos Indexados", f"{st.session_state.total_documentos} docs", "Estável no período")
+        col3.metric("Urgências Detectadas", f"{st.session_state.total_urgencias} urgências", "1 crítica · 1 alta", delta_color="inverse")
+        
+        st.markdown("---")
+        
+        st.markdown(f"""
+            <div class="saas-card" style="border-left: 4px solid #8B5CF6;">
+                <h4 style="margin: 0 0 8px 0; color: #E2E8F0;">🤖 Desempenho do Assistente Jurídico IA ({st.session_state.perfil_area})</h4>
+                <p style="margin: 0; color: #94A3B8; font-size: 14px;">
+                    <b>{st.session_state.total_documentos}</b> documentos indexados &nbsp;|&nbsp; 
+                    <b>87</b> consultas RAG realizadas &nbsp;|&nbsp; 
+                    <b>94%</b> de respostas com validação de fontes e jurisprudência
+                </p>
             </div>
         """, unsafe_allow_html=True)
         
-        st.subheader("📈 Evolução das Triagens (Últimos Dias)")
-        st.markdown("""
-            <div class="saas-card">
-                <p style="color: #94A3B8; font-size: 13px; margin-bottom: 10px;">Volume de atendimentos automatizados nos últimos 7 dias:</p>
-                <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 100px; padding-top: 10px;">
-                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 40px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Seg</small></div>
-                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 65px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Ter</small></div>
-                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 50px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qua</small></div>
-                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 85px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qui</small></div>
-                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 95px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sex</small></div>
-                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 30px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sáb</small></div>
-                    <div style="text-align: center;"><div style="background: #8B5CF6; height: 20px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Dom</small></div>
+        col_dash_esq, col_dash_dir = st.columns(2)
+        
+        with col_dash_esq:
+            st.subheader("📈 Distribuição de Demandas por Área")
+            st.markdown(
+                """
+                <div class="saas-card">
+                    <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Trabalhista (10 casos)</p>
                 </div>
-            </div>
-        """, unsafe_allow_html=True)
+                """, 
+                unsafe_allow_html=True
+            )
+            st.progress(1.0)
+            
+            st.markdown(
+                """
+                <div class="saas-card" style="margin-top: 10px;">
+                    <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Cível (8 casos)</p>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+            st.progress(0.8)
+            
+            st.markdown(
+                """
+                <div class="saas-card" style="margin-top: 10px;">
+                    <p style="font-weight: 600; color: #FFFFFF; margin-bottom: 5px;">Consumidor (6 casos)</p>
+                </div>
+                """, 
+                unsafe_allow_html=True
+            )
+            st.progress(0.6)
+            
+            st.subheader("⚖️ Distribuição por Risco Processual")
+            st.markdown("""
+                <div class="saas-card">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px;">
+                        <span style="color: #3B82F6;">🟢 Baixo Risco (40%)</span>
+                        <span style="color: #10B981;">🟡 Médio Risco (35%)</span>
+                        <span style="color: #F59E0B;">🟠 Alto Risco (15%)</span>
+                        <span style="color: #EF4444;">🔴 Crítico (10%)</span>
+                    </div>
+                    <div style="background-color: #262730; border-radius: 6px; height: 12px; width: 100%; display: flex; overflow: hidden;">
+                        <div style="width: 40%; background-color: #3B82F6;"></div>
+                        <div style="width: 35%; background-color: #10B981;"></div>
+                        <div style="width: 15%; background-color: #F59E0B;"></div>
+                        <div style="width: 10%; background-color: #EF4444;"></div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with col_dash_dir:
+            st.subheader("🔴 Casos Urgentes Requerendo Ação")
+            st.markdown("""
+                <div class="saas-card">
+                    <div class="urgente-critico">
+                        <strong style="color: #EF4444;">🚨 [Crítico] Prazo fatal Trabalhista</strong><br>
+                        <small style="color: #94A3B8;">Cliente: Indústria Textil Alfa · Vencimento amanhã</small>
+                    </div>
+                    <div class="urgente-alta">
+                        <strong style="color: #F59E0B;">⚠️ [Alta] Notificação Extrajudicial Cível</strong><br>
+                        <small style="color: #94A3B8;">Cliente: Condomínio Bella Vista · Prazo de 48h</small>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # BOTÃO INTERATIVO DO STREAMLIT QUE ABRE A CENTRAL DE URGÊNCIAS
+            if st.button("Ver todos os casos urgentes →", use_container_width=True):
+                st.session_state.mostrar_urgencias_detalhadas = True
+                st.rerun()
+            
+            st.subheader("📈 Evolução das Triagens (Últimos Dias)")
+            st.markdown("""
+                <div class="saas-card">
+                    <p style="color: #94A3B8; font-size: 13px; margin-bottom: 10px;">Volume de atendimentos automatizados nos últimos 7 dias:</p>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; height: 100px; padding-top: 10px;">
+                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 40px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Seg</small></div>
+                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 65px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Ter</small></div>
+                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 50px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qua</small></div>
+                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 85px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Qui</small></div>
+                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 95px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sex</small></div>
+                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 30px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Sáb</small></div>
+                        <div style="text-align: center;"><div style="background: #8B5CF6; height: 20px; width: 24px; border-radius: 4px; margin: 0 auto;"></div><small style="color: #94A3B8;">Dom</small></div>
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
 
 elif pagina_selecionada == "AI Legal Assistant IA":
     st.title("🤖 Assistente Jurídico IA (RAG & Base de Conhecimento)")
@@ -601,7 +648,7 @@ Quando a triagem estiver completa, explique que os dados serão encaminhados par
 12. RESUMO INTERNO DA TRIAGEM
 ==================================================
 
-Quando solicitado pelo sistema, organize o caso utilizando:
+Когда solicitado pelo sistema, organize o caso utilizando:
 ÁREA JURÍDICA:
 TIPO DE DEMANDA:
 RESUMO DOS FATOS:
