@@ -145,46 +145,6 @@ if "resultado_analise_2" not in st.session_state:
     st.session_state.resultado_analise_2 = ""
 
 # ==========================================
-# ==========================================
-# ==========================================
-# TELA DE AUTENTICAÇÃO (LOGIN)
-# ==========================================
-if not st.session_state.autenticado:
-    _, col_centro, _ = st.columns([1, 1.2, 1])
-    
-    with col_centro:
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.markdown("<h2 style='text-align: center;'>⚖️ Assistente Jurídico LM</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 14px;'>Acesso Corporativo Seguro</p>", unsafe_allow_html=True)
-        
-        aba_login, aba_cadastro, aba_recuperar = st.tabs(["Entrar", "Criar Conta", "Esqueci a Senha"])
-        
-        with aba_login:
-            st.markdown("<br>", unsafe_allow_html=True)
-            email_login = st.text_input("E-mail corporativo", key="login_email")
-            senha_login = st.text_input("Senha", type="password", key="login_senha")
-            
-            SENHA_MESTRE = "123456"  # Senha padrão de teste
-            
-            if st.button("Entrar no Sistema", use_container_width=True):
-                if email_login and senha_login:
-                    if senha_login == SENHA_MESTRE:
-                        st.session_state.autenticado = True
-                        st.rerun()
-                    else:
-                        st.error("❌ Senha incorreta. Verifique suas credenciais.")
-                else:
-                    st.warning("⚠️ Preencha todos os campos para continuar.")
-                    
-        with aba_cadastro:
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.text_input("Nome Completo", key="cad_nome")
-            st.text_input("E-mail Corporativo", key="cad_email")
-            st.text_input("Senha", type="password", key="cad_senha")
-            if st.button("Cadastrar", use_container_width=True):
-                st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
-                
- # ==========================================
 # TELA DE AUTENTICAÇÃO (LOGIN)
 # ==========================================
 if not st.session_state.autenticado:
