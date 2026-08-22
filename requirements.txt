@@ -26,3 +26,5 @@ langchain-groq
 pypdf
 pandas
 plotly
+resend
+streamlit
