@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# CSS PERSONALIZADO (SIDEBAR MODERNA + COMPONENTES SaaS)
+# CSS PERSONALIZADO (SIDEBAR MODERNA + BOTÕES SaaS)
 # ==========================================
 st.markdown("""
     <style>
@@ -21,6 +21,60 @@ st.markdown("""
             min-width: 300px;
             max-width: 300px;
             background-color: #0B0E14;
+        }
+        
+        /* Cabeçalho da Sidebar */
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0 20px 0;
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        /* Container do Perfil do Usuário */
+        .user-profile-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: #161B22;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #30363D;
+        }
+
+        .user-avatar {
+            position: relative;
+            width: 38px;
+            height: 38px;
+            background-color: #8B5CF6;
+            color: #FFFFFF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .status-dot {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 10px;
+            height: 10px;
+            background-color: #10B981;
+            border-radius: 50%;
+            border: 2px solid #161B22;
+        }
+
+        .user-name {
+            color: #FFFFFF;
+            font-size: 14px;
+            font-weight: 600;
         }
         
         /* Estilização moderna para cards estilo SaaS */
@@ -47,35 +101,17 @@ st.markdown("""
             border-radius: 6px;
             margin-bottom: 8px;
         }
-
-        /* Estilização customizada para o st.radio na Sidebar */
-        [data-testid="stSidebar"] div[role="radiogroup"] {
-            gap: 4px;
-        }
-
-        [data-testid="stSidebar"] div[role="radiogroup"] label {
-            background-color: transparent;
-            border-radius: 8px;
-            padding: 8px 12px;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-
-        [data-testid="stSidebar"] div[role="radiogroup"] label:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        [data-testid="stSidebar"] div[role="radiogroup"] label[data-baseweb="radio"] input:checked + div {
-            background: linear-gradient(90deg, #1E293B 0%, #334155 100%) !important;
-        }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 1. ESTADOS DA SESSÃO (COM CONTADORES E PERFIL)
+# 1. ESTADOS DA SESSÃO
 # ==========================================
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
+
+if "pagina_atual" not in st.session_state:
+    st.session_state.pagina_atual = "Dashboard"
 
 if "total_triagens" not in st.session_state:
     st.session_state.total_triagens = 24
@@ -135,38 +171,55 @@ if not st.session_state.autenticado:
     st.stop()
 
 # ==========================================
-# 2. SISTEMA INTERNO (BARRA LATERAL)
+# 2. SISTEMA INTERNO (BARRA LATERAL CUSTOMIZADA)
 # ==========================================
 with st.sidebar:
-    st.markdown("## ⚖️ Painel Corporativo")
-    st.markdown(f"👤 **{st.session_state.perfil_nome}**")
-    st.markdown("<span style='color: #10B981; font-size: 14px;'>● Online</span>", unsafe_allow_html=True)
-    st.markdown("---")
+    st.markdown("""
+        <div class="sidebar-header">
+            <span style="font-size: 22px;">⚖️</span>
+            <span>Painel Corporativo</span>
+        </div>
+    """, unsafe_allow_html=True)
     
-    pagina_selecionada = st.radio(
-        "Navegação",
-        [
-            "🔵 Dashboard", 
-            "🤖 Assistente Jurídico IA", 
-            "💬 Triagem Jurídica", 
-            "👤 Meu Perfil", 
-            "⚙️ Configurações", 
-            "🔔 Notificações", 
-            "🚪 Sair do Sistema"
-        ],
-        label_visibility="collapsed"
-    )
+    st.markdown(f"""
+        <div class="user-profile-container">
+            <div class="user-avatar">
+                {st.session_state.perfil_nome[0]}
+                <div class="status-dot"></div>
+            </div>
+            <div class="user-info">
+                <span class="user-name">{st.session_state.perfil_nome}</span>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
     
-    if pagina_selecionada == "🚪 Sair do Sistema":
-        st.session_state.autenticado = False
-        st.rerun()
+    nav_itens = [
+        ("Dashboard", "📊"),
+        ("AI Legal Assistant IA", "🤖"),
+        ("Triagem Jurídica", "📝"),
+        ("Meu Perfil", "👤"),
+        ("Configuração", "⚙️"),
+        ("Notificações", "🔔"),
+        ("Sair do Sistema", "🚪")
+    ]
+    
+    for nome, icone in nav_itens:
+        if st.button(f"{icone}  {nome}", key=f"nav_{nome}", use_container_width=True):
+            if nome == "Sair do Sistema":
+                st.session_state.autenticado = False
+                st.session_state.pagina_atual = "Dashboard"
+                st.rerun()
+            else:
+                st.session_state.pagina_atual = nome
+                st.rerun()
+
+pagina_selecionada = st.session_state.pagina_atual
 
 # ==========================================
 # 3. ROTEAMENTO DAS TELAS
 # ==========================================
 
-# MÓDULO: MEU PERFIL
-if pagina_selecionada == "👤 Meu Perfil":
+if pagina_selecionada == "Meu Perfil":
     st.title("👤 Meu Perfil Profissional")
     st.markdown("Gerencie suas informações cadastrais e parâmetros de atuação para personalizar a inteligência artificial do escritório.")
     st.markdown("---")
@@ -193,20 +246,19 @@ if pagina_selecionada == "👤 Meu Perfil":
         st.session_state.perfil_area = nova_area
         st.success("✅ Perfil profissional atualizado com sucesso! As configurações já estão ativas para as análises da IA.")
 
-elif pagina_selecionada == "⚙️ Configurações":
+elif pagina_selecionada == "Configuração":
     st.title("⚙️ Configurações")
     st.markdown("Ajustes gerais do sistema.")
     st.markdown("---")
     st.toggle("Modo Escuro", value=True)
 
-elif pagina_selecionada == "🔔 Notificações":
+elif pagina_selecionada == "Notificações":
     st.title("🔔 Notificações")
     st.markdown("Avisos recentes.")
     st.markdown("---")
     st.info("Nenhuma nova notificação pendente.")
 
-# MÓDULO: DASHBOARD
-elif pagina_selecionada == "🔵 Dashboard":
+elif pagina_selecionada == "Dashboard":
     st.title("📊 Painel Executivo de Inteligência Jurídica")
     st.markdown("Visão geral em tempo real do desempenho e fluxo do escritório.")
     
@@ -315,8 +367,7 @@ elif pagina_selecionada == "🔵 Dashboard":
             </div>
         """, unsafe_allow_html=True)
 
-# MÓDULO: ASSISTENTE JURÍDICO IA
-elif pagina_selecionada == "🤖 Assistente Jurídico IA":
+elif pagina_selecionada == "AI Legal Assistant IA":
     st.title("🤖 Assistente Jurídico IA (RAG & Base de Conhecimento)")
     st.markdown(f"Análise avançada de contratos e documentos com suporte para **{st.session_state.perfil_area}**.")
     
@@ -398,8 +449,7 @@ elif pagina_selecionada == "🤖 Assistente Jurídico IA":
             except Exception as e:
                 st.error(f"Erro ao processar a análise com a IA: {e}")
 
-# MÓDULO: TRIAGEM JURÍDICA (COM O NOVO PROMPT DETALHADO)
-elif pagina_selecionada == "💬 Triagem Jurídica":
+elif pagina_selecionada == "Triagem Jurídica":
     st.title("💬 Triagem Jurídica via WhatsApp")
     st.markdown("Atendimento inicial automatizado para identificar a demanda e encaminhar o cliente ao advogado responsável.")
     
@@ -545,7 +595,7 @@ Trate as informações fornecidas pelo cliente como confidenciais. Solicite apen
 11. ENCAMINHAMENTO AO ADVOGADO
 ==================================================
 
-Когда a triagem estiver completa, explique que os dados serão encaminhados para análise do advogado responsável.
+Quando a triagem estiver completa, explique que os dados serão encaminhados para análise do advogado responsável.
 
 ==================================================
 12. RESUMO INTERNO DA TRIAGEM
