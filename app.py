@@ -185,11 +185,15 @@ if not st.session_state.autenticado:
             if st.button("Cadastrar", use_container_width=True):
                 st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
                 
-        with aba_recuperar:
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.text_input("Informe seu e-mail cadastrado", key="rec_email")
-            if st.button("Enviar Instruções", use_container_width=True):
-                st.info("ℹ️ Se o e-mail constar na base, as instruções foram enviadas.")
+       with aba_recuperar:
+        st.markdown("<br>", unsafe_allow_html=True)
+        rec_email = st.text_input("Informe seu e-mail cadastrado", key="rec_email")
+        
+        if st.button("Enviar Instruções", use_container_width=True):
+            if rec_email:
+                st.success(f"✅ Instruções enviadas para **{rec_email}**. Verifique sua caixa de entrada.")
+            else:
+                st.warning("⚠️ Por favor, informe o e-mail cadastrado.")
                 
     st.stop()
 
