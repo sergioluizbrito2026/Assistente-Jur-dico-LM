@@ -145,10 +145,10 @@ if "resultado_analise_2" not in st.session_state:
 
 # ==========================================
 # ==========================================
+# ==========================================
 # TELA DE AUTENTICAÇÃO (LOGIN)
 # ==========================================
 if not st.session_state.autenticado:
-    # Centraliza o login usando colunas (deixando o formulário compacto no meio)
     _, col_centro, _ = st.columns([1, 1.2, 1])
     
     with col_centro:
@@ -163,12 +163,10 @@ if not st.session_state.autenticado:
             email_login = st.text_input("E-mail corporativo", key="login_email")
             senha_login = st.text_input("Senha", type="password", key="login_senha")
             
-            # Defina aqui a sua senha corporativa de acesso (ou substitua pela validação do seu banco)
-            SENHA_MESTRE = "123456" # Exemplo provisório seguro
+            SENHA_MESTRE = "123456"  # Senha padrão de teste
             
             if st.button("Entrar no Sistema", use_container_width=True):
                 if email_login and senha_login:
-                    # CORREÇÃO DA SENHA: Verifica se a senha confere
                     if senha_login == SENHA_MESTRE:
                         st.session_state.autenticado = True
                         st.rerun()
@@ -185,15 +183,14 @@ if not st.session_state.autenticado:
             if st.button("Cadastrar", use_container_width=True):
                 st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
                 
-       with aba_recuperar:
-        st.markdown("<br>", unsafe_allow_html=True)
-        rec_email = st.text_input("Informe seu e-mail cadastrado", key="rec_email")
-        
-        if st.button("Enviar Instruções", use_container_width=True):
-            if rec_email:
-                st.success(f"✅ Instruções enviadas para **{rec_email}**. Verifique sua caixa de entrada.")
-            else:
-                st.warning("⚠️ Por favor, informe o e-mail cadastrado.")
+        with aba_recuperar:
+            st.markdown("<br>", unsafe_allow_html=True)
+            rec_email = st.text_input("Informe seu e-mail cadastrado", key="rec_email")
+            if st.button("Enviar Instruções", use_container_width=True):
+                if rec_email:
+                    st.success(f"✅ Instruções simuladas enviadas para **{rec_email}**.")
+                else:
+                    st.warning("⚠️ Por favor, informe o e-mail cadastrado.")
                 
     st.stop()
 
