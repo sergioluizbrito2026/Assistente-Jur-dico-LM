@@ -184,17 +184,53 @@ if not st.session_state.autenticado:
             if st.button("Cadastrar", use_container_width=True):
                 st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
                 
-       with aba_recuperar:
+       # ==========================================
+# TELA DE AUTENTICAÇÃO (LOGIN)
+# ==========================================
+if not st.session_state.autenticado:
+    _, col_centro, _ = st.columns([1, 1.2, 1])
+    
+    with col_centro:
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown("<h2 style='text-align: center;'>⚖️ Assistente Jurídico LM</h2>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #94A3B8; font-size: 14px;'>Acesso Corporativo Seguro</p>", unsafe_allow_html=True)
+        
+        aba_login, aba_cadastro, aba_recuperar = st.tabs(["Entrar", "Criar Conta", "Esqueci a Senha"])
+        
+        with aba_login:
+            st.markdown("<br>", unsafe_allow_html=True)
+            email_login = st.text_input("E-mail corporativo", key="login_email")
+            senha_login = st.text_input("Senha", type="password", key="login_senha")
+            
+            SENHA_MESTRE = "123456"
+            
+            if st.button("Entrar no Sistema", use_container_width=True):
+                if email_login and senha_login:
+                    if senha_login == SENHA_MESTRE:
+                        st.session_state.autenticado = True
+                        st.rerun()
+                    else:
+                        st.error("❌ Senha incorreta. Verifique suas credenciais.")
+                else:
+                    st.warning("⚠️ Preencha todos os campos para continuar.")
+                    
+        with aba_cadastro:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.text_input("Nome Completo", key="cad_nome")
+            st.text_input("E-mail Corporativo", key="cad_email")
+            st.text_input("Senha", type="password", key="cad_senha")
+            if st.button("Cadastrar", use_container_width=True):
+                st.success("✅ Conta criada com sucesso! Vá para a aba 'Entrar'.")
+                
+        with aba_recuperar:
             st.markdown("<br>", unsafe_allow_html=True)
             rec_email = st.text_input("Informe seu e-mail cadastrado", key="rec_email")
             
             if st.button("Enviar Instruções", use_container_width=True):
                 if rec_email:
                     try:
-                        # Configura a chave a partir dos segredos do Streamlit
                         resend.api_key = st.secrets["RESEND_API_KEY"]
                         
-                        # Parâmetros de envio do e-mail real
                         params = {
                             "from": "Assistente Jurídico LM <onboarding@resend.dev>",
                             "to": [rec_email],
@@ -210,14 +246,15 @@ if not st.session_state.autenticado:
                             """
                         }
                         
-                        # Dispara o e-mail
                         response = resend.Emails.send(params)
-                        st.success(f"✅ E-mail real de recuperação enviado com sucesso para **{rec_email}**! Verifique sua caixa de entrada.")
+                        st.success(f"✅ E-mail enviado com sucesso para **{rec_email}**! Verifique sua caixa de entrada.")
                         
                     except Exception as e:
                         st.error(f"❌ Erro ao enviar o e-mail: {e}")
                 else:
                     st.warning("⚠️ Por favor, informe o e-mail cadastrado.")
+                
+    st.stop()
 
 # ==========================================
 # 2. SISTEMA INTERNO (BARRA LATERAL CUSTOMIZADA)
